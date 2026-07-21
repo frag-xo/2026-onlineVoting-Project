@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品跳转测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .test-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-btn:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>商品详情页跳转测试</h1>
+    
+    <div>
+        <h3>请点击以下按钮测试商品跳转：</h3>
+        
+        <button class="test-btn" onclick="testJump('1')">跳转到商品 1</button>
+        <button class="test-btn" onclick="testJump('2')">跳转到商品 2</button>
+        <button class="test-btn" onclick="testJump('3')">跳转到商品 3</button>
+        <button class="test-btn" onclick="testJump('4')">跳转到商品 4</button>
+    </div>
+    
+    <div class="result">
+        <h3>当前页面 URL 信息：</h3>
+        <p><strong>完整 URL:</strong> <span id="full-url"></span></p>
+        <p><strong>Search 部分:</strong> <span id="search-part"></span></p>
+        <p><strong>pId 参数:</strong> <span id="pid-value"></span></p>
+    </div>
+    
+    <script>
+        // 显示当前 URL 信息
+        function showUrlInfo() {
+            document.getElementById('full-url').textContent = window.location.href;
+            document.getElementById('search-part').textContent = window.location.search || '(无)';
+            
+            const params = new URLSearchParams(window.location.search);
+            const pId = params.get('pId');
+            document.getElementById('pid-value').textContent = pId || '(无)';
+        }
+        
+        // 测试跳转
+        function testJump(pId) {
+            console.log('准备跳转到商品:', pId);
+            const url = `/product-detail.html?pId=${pId}`;
+            console.log('跳转 URL:', url);
+            window.location.href = url;
+        }
+        
+        // 页面加载时显示 URL 信息
+        showUrlInfo();
+    </script>
+</body>
+</html>

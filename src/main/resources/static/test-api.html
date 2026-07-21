@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试 - 温宿县农商平台</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #28a745;
+            border-bottom: 3px solid #28a745;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+        }
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #218838;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .loading {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 API 接口测试工具</h1>
+        <p>用于测试温宿县农商平台的后端接口是否正常</p>
+
+        <div class="test-section">
+            <h3>测试 1: 数据库连接测试</h3>
+            <button class="btn" onclick="testDatabase()">开始测试</button>
+            <div id="db-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>测试 2: 首页数据接口</h3>
+            <button class="btn" onclick="testHomeData()">开始测试</button>
+            <div id="home-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>测试 3: 商品详情接口</h3>
+            <button class="btn" onclick="testProductDetail()">测试商品 ID=1</button>
+            <div id="product-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>快速跳转</h3>
+            <button class="btn" onclick="window.open('/index.html', '_blank')">访问首页</button>
+            <button class="btn" onclick="window.open('/api/home', '_blank')">查看首页 API 原始数据</button>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据库连接
+        async function testDatabase() {
+            const resultDiv = document.getElementById('db-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">⏳ 正在测试...</span>';
+
+            try {
+                const response = await fetch('/api/test/db');
+                const data = await response.json();
+                
+                if (data.data && data.data.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 数据库连接成功!</p>
+                        <p>商品总数：<strong>${data.data.totalProducts}</strong></p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 数据库连接失败</p>
+                        <p>错误信息：${data.data.message}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 请求失败</p>
+                    <p>错误：${error.message}</p>
+                    <p>可能原因：后端服务未启动或端口被占用</p>
+                `;
+            }
+        }
+
+        // 测试首页数据
+        async function testHomeData() {
+            const resultDiv = document.getElementById('home-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">⏳ 正在加载...</span>';
+
+            try {
+                const response = await fetch('/api/home');
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    const stats = `
+                        <ul>
+                            <li>轮播图：<strong>${data.data.banners ? data.data.banners.length : 0}</strong> 个</li>
+                            <li>推荐商品：<strong>${data.data.recommendedProducts ? data.data.recommendedProducts.length : 0}</strong> 个</li>
+                            <li>苹果商品：<strong>${data.data.appleProducts ? data.data.appleProducts.length : 0}</strong> 个</li>
+                            <li>核桃商品：<strong>${data.data.walnutProducts ? data.data.walnutProducts.length : 0}</strong> 个</li>
+                            <li>友情链接：<strong>${data.data.friendLinks ? data.data.friendLinks.length : 0}</strong> 个</li>
+                        </ul>
+                    `;
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 首页数据加载成功!</p>
+                        ${stats}
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 数据加载失败</p>
+                        <p>错误码：${data.code}</p>
+                        <p>消息：${data.message}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 请求失败</p>
+                    <p>错误：${error.message}</p>
+                `;
+            }
+        }
+
+        // 测试商品详情
+        async function testProductDetail() {
+            const resultDiv = document.getElementById('product-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="loading">⏳ 正在加载...</span>';
+
+            try {
+                const response = await fetch('/api/product/1');
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 商品详情加载成功!</p>
+                        <p>商品名称：<strong>${data.data.product.pName}</strong></p>
+                        <p>商品价格：<strong>¥${data.data.product.pPrice}</strong></p>
+                        <p>推荐商品数：<strong>${data.data.buyAgainRecommendation ? data.data.buyAgainRecommendation.length : 0}</strong> 个</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 商品详情加载失败</p>
+                        <p>错误码：${data.code}</p>
+                        <p>消息：${data.message}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 请求失败</p>
+                    <p>错误：${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

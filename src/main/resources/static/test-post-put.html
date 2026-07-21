@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST 和 PUT 接口测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-section p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .url-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .method.post {
+            background: #28a745;
+            color: white;
+        }
+        
+        .method.put {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .method.get {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .response-box {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .response-box pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .loading {
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 API 接口测试工具</h1>
+        
+        <!-- GET 请求测试 -->
+        <div class="test-section">
+            <h2>1. GET 请求测试</h2>
+            <p>测试接口是否正常运行</p>
+            <div class="url-box">
+                <span class="method get">GET</span>
+                <code id="get-url">http://localhost:8888/api/test/info</code>
+            </div>
+            <button onclick="testGet()">发送 GET 请求</button>
+            <div class="response-box" id="get-response" style="display: none;"></div>
+        </div>
+        
+        <!-- POST 请求测试 -->
+        <div class="test-section">
+            <h2>2. POST 请求测试 - 通用数据</h2>
+            <p>发送任意 JSON 数据进行测试</p>
+            <div class="url-box">
+                <span class="method post">POST</span>
+                <code>http://localhost:8888/api/test/create</code>
+            </div>
+            <label for="post-data" style="display: block; margin-bottom: 8px; font-weight: bold;">请求体 JSON:</label>
+            <textarea id="post-data">{
+  "name": "测试数据",
+  "type": "POST 请求",
+  "description": "这是一个测试 POST 请求",
+  "items": ["项目 1", "项目 2", "项目 3"],
+  "metadata": {
+    "version": "1.0",
+    "author": "测试员",
+    "timestamp": "2026-04-01"
+  }
+}</textarea>
+            <button onclick="testPost()">发送 POST 请求</button>
+            <div class="response-box" id="post-response" style="display: none;"></div>
+        </div>
+        
+        <!-- PUT 请求测试 -->
+        <div class="test-section">
+            <h2>3. PUT 请求测试 - 更新数据</h2>
+            <p>更新指定 ID 的数据</p>
+            <div class="url-box">
+                <span class="method put">PUT</span>
+                <code>http://localhost:8888/api/test/update/{id}</code>
+            </div>
+            <label for="put-id" style="display: block; margin-bottom: 8px; font-weight: bold;">资源 ID:</label>
+            <input type="text" id="put-id" value="12345" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+            <label for="put-data" style="display: block; margin-bottom: 8px; font-weight: bold;">更新数据 JSON:</label>
+            <textarea id="put-data">{
+  "name": "更新后的名称",
+  "description": "这是更新后的描述信息",
+  "status": "active",
+  "priority": 1,
+  "tags": ["重要", "已更新"]
+}</textarea>
+            <button onclick="testPut()">发送 PUT 请求</button>
+            <div class="response-box" id="put-response" style="display: none;"></div>
+        </div>
+        
+        <!-- POST 商品数据测试 -->
+        <div class="test-section">
+            <h2>4. POST 请求测试 - 创建商品</h2>
+            <p>模拟创建商品的请求</p>
+            <div class="url-box">
+                <span class="method post">POST</span>
+                <code>http://localhost:8888/api/test/product</code>
+            </div>
+            <label for="product-post-data" style="display: block; margin-bottom: 8px; font-weight: bold;">商品数据 JSON:</label>
+            <textarea id="product-post-data">{
+  "pName": "新疆阿克苏冰糖心苹果",
+  "pDescription": "新疆阿克苏特产，皮薄肉厚，甜脆可口",
+  "pPrice": 68.00,
+  "originalPrice": 88.00,
+  "pImage": "/images/apple1.jpg",
+  "category": "apple",
+  "origin": "新疆阿克苏",
+  "specification": "5kg 装",
+  "stock": 1000,
+  "sales": 500,
+  "isRecommended": 1,
+  "sortOrder": 10,
+  "status": 1
+}</textarea>
+            <button onclick="testCreateProduct()">创建商品</button>
+            <div class="response-box" id="product-post-response" style="display: none;"></div>
+        </div>
+        
+        <!-- PUT 商品数据测试 -->
+        <div class="test-section">
+            <h2>5. PUT 请求测试 - 更新商品</h2>
+            <p>更新指定 ID 的商品信息</p>
+            <div class="url-box">
+                <span class="method put">PUT</span>
+                <code>http://localhost:8888/api/test/product/{productId}</code>
+            </div>
+            <label for="product-id" style="display: block; margin-bottom: 8px; font-weight: bold;">商品 ID:</label>
+            <input type="text" id="product-id" value="1" 
+                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; margin-bottom: 15px; font-size: 14px;">
+            <label for="product-put-data" style="display: block; margin-bottom: 8px; font-weight: bold;">更新数据 JSON:</label>
+            <textarea id="product-put-data">{
+  "pName": "新疆阿克苏冰糖心苹果（升级版）",
+  "pPrice": 78.00,
+  "originalPrice": 98.00,
+  "description": "品质升级，更加甜脆可口",
+  "stock": 1500,
+  "isRecommended": 1,
+  "sortOrder": 20
+}</textarea>
+            <button onclick="testUpdateProduct()">更新商品</button>
+            <div class="response-box" id="product-put-response" style="display: none;"></div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:8888/api/test';
+        
+        // 显示响应结果
+        function showResponse(elementId, data, success) {
+            const responseBox = document.getElementById(elementId);
+            responseBox.style.display = 'block';
+            responseBox.className = 'response-box ' + (success ? 'success' : 'error');
+            responseBox.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+        
+        // GET 请求测试
+        async function testGet() {
+            try {
+                document.getElementById('get-response').style.display = 'block';
+                document.getElementById('get-response').className = 'response-box loading';
+                document.getElementById('get-response').innerHTML = '<pre>加载中...</pre>';
+                
+                const response = await axios.get(`${API_BASE}/info`);
+                showResponse('get-response', response.data, true);
+            } catch (error) {
+                showResponse('get-response', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }, false);
+            }
+        }
+        
+        // POST 请求测试
+        async function testPost() {
+            try {
+                const data = JSON.parse(document.getElementById('post-data').value);
+                document.getElementById('post-response').style.display = 'block';
+                document.getElementById('post-response').className = 'response-box loading';
+                document.getElementById('post-response').innerHTML = '<pre>发送中...</pre>';
+                
+                const response = await axios.post(`${API_BASE}/create`, data);
+                showResponse('post-response', response.data, true);
+            } catch (error) {
+                showResponse('post-response', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }, false);
+            }
+        }
+        
+        // PUT 请求测试
+        async function testPut() {
+            try {
+                const id = document.getElementById('put-id').value;
+                const data = JSON.parse(document.getElementById('put-data').value);
+                document.getElementById('put-response').style.display = 'block';
+                document.getElementById('put-response').className = 'response-box loading';
+                document.getElementById('put-response').innerHTML = '<pre>更新中...</pre>';
+                
+                const response = await axios.put(`${API_BASE}/update/${id}`, data);
+                showResponse('put-response', response.data, true);
+            } catch (error) {
+                showResponse('put-response', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }, false);
+            }
+        }
+        
+        // 创建商品
+        async function testCreateProduct() {
+            try {
+                const data = JSON.parse(document.getElementById('product-post-data').value);
+                document.getElementById('product-post-response').style.display = 'block';
+                document.getElementById('product-post-response').className = 'response-box loading';
+                document.getElementById('product-post-response').innerHTML = '<pre>创建中...</pre>';
+                
+                const response = await axios.post(`${API_BASE}/product`, data);
+                showResponse('product-post-response', response.data, true);
+            } catch (error) {
+                showResponse('product-post-response', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }, false);
+            }
+        }
+        
+        // 更新商品
+        async function testUpdateProduct() {
+            try {
+                const productId = document.getElementById('product-id').value;
+                const data = JSON.parse(document.getElementById('product-put-data').value);
+                document.getElementById('product-put-response').style.display = 'block';
+                document.getElementById('product-put-response').className = 'response-box loading';
+                document.getElementById('product-put-response').innerHTML = '<pre>更新中...</pre>';
+                
+                const response = await axios.put(`${API_BASE}/product/${productId}`, data);
+                showResponse('product-put-response', response.data, true);
+            } catch (error) {
+                showResponse('product-put-response', {
+                    error: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }, false);
+            }
+        }
+    </script>
+</body>
+</html>
