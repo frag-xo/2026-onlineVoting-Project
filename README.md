@@ -11,6 +11,7 @@
 - MyBatis-Plus 3.5.3.1
 - MySQL 8.0
 - Redis
+- JWT (jjwt)
 - Swagger (SpringDoc OpenAPI)
 
 ### 前端
@@ -66,17 +67,52 @@ npm run dev
 | ROLE_1 管理员 | 所有功能 |
 | ROLE_3 普通用户 | 查看、投票、分享 |
 
+## 认证方式
+
+本系统使用 JWT (JSON Web Token) 进行身份认证。
+
+### 1. 登录获取 Token
+```
+POST /api/account/login?uname=testuser&pwd=123456
+```
+返回：
+```json
+{
+  "code": 200,
+  "msg": "登录成功",
+  "t": {
+    "token": "eyJhbGciOiJIUzI1NiJ9...",
+    "id": 2,
+    "uname": "testuser",
+    "utype": "ROLE_3"
+  }
+}
+```
+
+### 2. 请求携带 Token
+在请求头中添加：
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+### 3. Token 过期时间
+默认 24 小时，可在 `application.yaml` 中修改：
+```yaml
+jwt:
+  expiration: 86400000  # 24小时
+```
+
 ## 接口列表
 
 ### 公用接口（不需要登录）
 - `POST /api/account/register` - 注册
 - `POST /api/account/login` - 登录
 
-### 通用接口（需要登录）
+### 通用接口（需要登录，携带 Token）
 - `GET /api/vote/page/simple` - 查投票列表
 - `GET /api/vote/{id}` - 查投票详情
 - `GET /api/vote/result/{id}` - 查投票结果
-- `POST /api/vote/vote` - 用户投票
+- `POST /api/vote/vote` - 用户投票（需要验证码）
 - `GET /api/captcha/generate` - 生成验证码
 - `GET /api/vote/share/link/{id}` - 生成分享链接
 - `GET /api/vote/share/qrcode/{id}` - 生成二维码
@@ -91,6 +127,27 @@ npm run dev
 
 完整接口文档请访问 Swagger UI。
 
+## 投票功能说明
+
+### 投票流程
+1. 用户登录获取 Token
+2. 查看投票列表
+3. 获取验证码（`GET /api/captcha/generate`）
+4. 提交投票（需要验证码）
+5. 查看投票结果
+
+### 防刷票机制
+- 图形验证码：投票时需要输入验证码
+- 投票截止时间：超过截止时间无法投票
+- 一人一票：同一用户对同一投票只能投一次
+
+### 投票分享
+- 生成分享链接：`GET /api/vote/share/link/{id}`
+- 生成二维码：`GET /api/vote/share/qrcode/{id}`
+
+### 数据导出
+- 导出投票结果为 Excel：`GET /api/vote/export/{id}`
+
 ## 项目结构
 
 ```
@@ -103,6 +160,7 @@ Online_voting/
 │   ├── dto/            # 数据传输对象
 │   ├── config/         # 配置类
 │   ├── interceptor/    # 拦截器
+│   ├── utils/          # 工具类（JWT等）
 │   └── exception/      # 异常处理
 ├── src/main/resources/
 │   ├── application.yaml

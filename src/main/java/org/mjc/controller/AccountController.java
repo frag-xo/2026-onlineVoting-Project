@@ -7,6 +7,7 @@ import org.mjc.dto.DTO;
 import org.mjc.entity.Account;
 import org.mjc.exception.BusinessException;
 import org.mjc.service.AccountService;
+import org.mjc.utils.JwtUtils;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
@@ -27,6 +28,9 @@ public class AccountController {
 
     @Resource
     private AccountService accountService;
+
+    @Resource
+    private JwtUtils jwtUtils;
 
     @Operation(summary = "用户注册", description = "注册新用户")
     @PostMapping("/register")
@@ -57,7 +61,7 @@ public class AccountController {
         return dto;
     }
 
-    @Operation(summary = "用户登录", description = "用户登录")
+    @Operation(summary = "用户登录", description = "用户登录，返回token")
     @PostMapping("/login")
     public DTO<Map<String, Object>> login(
             @Parameter(description = "用户名", required = true)
@@ -70,12 +74,15 @@ public class AccountController {
             throw new BusinessException(401, "用户名或密码错误");
         }
 
-        // 返回用户信息（不包含密码）
+        // 生成 token
+        String token = jwtUtils.generateToken(account.getId(), account.getUname(), account.getUtype());
+
+        // 返回 token 和用户信息
         Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
         result.put("id", account.getId());
         result.put("uname", account.getUname());
         result.put("realname", account.getRealname());
-        result.put("phoneNumber", account.getPhoneNumber());
         result.put("utype", account.getUtype());
 
         DTO<Map<String, Object>> dto = new DTO<>(200, "登录成功");
@@ -88,8 +95,10 @@ public class AccountController {
     public DTO<Account> getAccountById(
             @Parameter(description = "用户ID", required = true)
             @PathVariable Long id,
-            @Parameter(description = "当前登录用户ID", required = true)
-            @RequestParam Long currentUserId) throws BusinessException {
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+
+        // 从 token 中获取当前用户ID
+        Long currentUserId = (Long) request.getAttribute("currentUserId");
 
         // 普通用户只能查自己
         if (!id.equals(currentUserId)) {
@@ -112,11 +121,13 @@ public class AccountController {
     @PutMapping
     public DTO<Account> updateAccount(
             @RequestBody Account account,
-            @Parameter(description = "当前登录用户ID", required = true)
-            @RequestParam Long currentUserId) throws BusinessException {
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
         if (account.getId() == null) {
             throw new BusinessException(400, "用户ID不能为空");
         }
+
+        // 从 token 中获取当前用户ID
+        Long currentUserId = (Long) request.getAttribute("currentUserId");
 
         // 只能改自己
         if (!account.getId().equals(currentUserId)) {
@@ -149,8 +160,10 @@ public class AccountController {
             @RequestParam String oldPwd,
             @Parameter(description = "新密码", required = true)
             @RequestParam String newPwd,
-            @Parameter(description = "当前登录用户ID", required = true)
-            @RequestParam Long currentUserId) throws BusinessException {
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+
+        // 从 token 中获取当前用户ID
+        Long currentUserId = (Long) request.getAttribute("currentUserId");
 
         // 只能改自己
         if (!id.equals(currentUserId)) {

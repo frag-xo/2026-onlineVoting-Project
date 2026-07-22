@@ -181,12 +181,14 @@ public class VoteController {
             @RequestParam Long voteId,
             @Parameter(description = "选项ID", required = true)
             @RequestParam Long optionId,
-            @Parameter(description = "用户ID", required = true)
-            @RequestParam Long userId,
             @Parameter(description = "验证码ID", required = true)
             @RequestParam String captchaId,
             @Parameter(description = "验证码", required = true)
-            @RequestParam String captchaCode) throws BusinessException {
+            @RequestParam String captchaCode,
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+
+        // 从 token 中获取用户ID
+        Long userId = (Long) request.getAttribute("currentUserId");
 
         // 1. 验证验证码
         if (!captchaController.verifyCaptcha(captchaId, captchaCode)) {
@@ -257,8 +259,9 @@ public class VoteController {
     public DTO<Boolean> hasVoted(
             @Parameter(description = "投票ID")
             @RequestParam Long voteId,
-            @Parameter(description = "用户ID")
-            @RequestParam Long userId) {
+            jakarta.servlet.http.HttpServletRequest request) {
+        // 从 token 中获取用户ID
+        Long userId = (Long) request.getAttribute("currentUserId");
         boolean hasVoted = voteRecordService.hasVoted(voteId, userId);
         DTO<Boolean> dto = new DTO<>(200, "查询成功");
         dto.setT(hasVoted);
