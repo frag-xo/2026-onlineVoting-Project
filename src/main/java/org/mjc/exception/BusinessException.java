@@ -2,9 +2,11 @@
 package org.mjc.exception;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @SuppressWarnings("all")
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class BusinessException extends Exception {
 		private String message;
 		private Integer code;
