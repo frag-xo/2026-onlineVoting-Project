@@ -1,0 +1,7 @@
+{"code":200,"msg":"查询全部学生成功","tList": [
+  {"cmid":"21","cmname":"开学通知","cmlevel": "2","cmpid":20,"cmcontent": "www.baidu.com","cmdetail": "1.jpg"},
+  {"cmid":"22","cmname":"实习招聘开始了","cmlevel": "2","cmpid":20,"cmcontent": "www.baidu.com","cmdetail": "2.jpg"},
+  {"cmid":"23","cmname":"迎新晚会","cmlevel": "2","cmpid":20,"cmcontent": "www.sina.com.cn","cmdetail": "3.jpg"},
+  {"cmid":"24","cmname":"毕业典礼","cmlevel": "2","cmpid":20,"cmcontent": "www.163.com","cmdetail": "4.jpg"},
+  {"cmid":"25","cmname":"运动会","cmlevel": "2","cmpid":20,"cmcontent": "www.baidu.com","cmdetail": "5.jpg"}
+]}
