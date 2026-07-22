@@ -68,9 +68,39 @@ public class AuthInterceptor implements HandlerInterceptor {
             }
         }
 
-        // 投票管理接口权限验证（只有管理员可以创建/修改/删除投票）
-        if (uri.startsWith("/api/vote/") && !uri.contains("/page") && !uri.contains("/result") &&
-            !uri.contains("/hasVoted") && !uri.contains("/share") && !uri.contains("/vote")) {
+        // 管理员专用接口权限验证
+        boolean needAdmin = false;
+
+        // 1. /api/admin/** 全部需要管理员
+        if (uri.startsWith("/api/admin")) {
+            needAdmin = true;
+        }
+
+        // 2. 投票管理（非查询操作）
+        if (uri.equals("/api/vote") && !"GET".equalsIgnoreCase(method)) {
+            needAdmin = true; // POST创建、PUT修改
+        }
+        if (uri.matches("/api/vote/\\d+") && "DELETE".equalsIgnoreCase(method)) {
+            needAdmin = true; // DELETE删除
+        }
+        if (uri.startsWith("/api/vote/end/")) {
+            needAdmin = true; // 结束投票
+        }
+        if (uri.startsWith("/api/vote/init/")) {
+            needAdmin = true; // 生成随机数据
+        }
+
+        // 3. 选项管理全部需要管理员
+        if (uri.startsWith("/api/vote/option")) {
+            needAdmin = true;
+        }
+
+        // 4. 投票记录管理（删除操作需要管理员）
+        if (uri.startsWith("/api/vote/record") && !"GET".equalsIgnoreCase(method)) {
+            needAdmin = true;
+        }
+
+        if (needAdmin) {
             if (!"GET".equalsIgnoreCase(method)) {
                 if (!"ROLE_1".equals(utype)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
