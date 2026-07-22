@@ -1,37 +1,25 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ES2020",
     "useDefineForClassFields": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "strict": true,
-    "jsx": "preserve",
-    "sourceMap": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "jsxImportSource": "vue",
-    "lib": ["esnext", "dom"],
-    "baseUrl": "./",
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "strictFunctionTypes": false,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "experimentalDecorators": true,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    },
-    "types": [
-      "@intlify/unplugin-vue-i18n/types",
-      "vite/client",
-      "element-plus/global",
-      "@types/qrcode",
-      "vite-plugin-svg-icons/client"
-    ]
+    }
   },
-  "include": ["src", "types/**/*.d.ts", "mock/**/*.ts"]
-  // "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
