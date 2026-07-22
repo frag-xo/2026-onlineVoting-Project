@@ -28,6 +28,7 @@
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
         <druid.version>1.2.20</druid.version>
         <mysql.version>8.0.33</mysql.version>
+        <protobuf.version>3.25.1</protobuf.version>
 
         <!-- 工具库版本 -->
         <hutool.version>5.8.23</hutool.version>
@@ -195,7 +196,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.25.1</version>
+            <version>${protobuf.version}</version>
         </dependency>
 
         <dependency>
