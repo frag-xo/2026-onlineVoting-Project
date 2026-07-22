@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================
-echo    启动数字健康平台
+echo    启动 Online_Voting 系统
 echo ========================================
 echo.
 
@@ -39,7 +39,7 @@ echo.
 
 REM ========== 3. 启动前端 ==========
 echo [3/4] 启动前端 Vue 开发服务器...
-start "Frontend" cmd /k "cd /d %~dp0digit_healthcarevue && npm run dev"
+start "Frontend" cmd /k "cd /d %~dp0online_voting_vue && npm run dev"
 echo     前端正在启动...
 echo.
 

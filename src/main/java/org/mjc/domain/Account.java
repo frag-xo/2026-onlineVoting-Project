@@ -15,7 +15,7 @@ public class Account  {
     private String uname;
     private String pwd;
     private String phoneNumber;
-    private String utype;   //ROLE_1管理员、ROLE_2医生、ROLE_3患者
+    private String utype;   //ROLE_1管理员、ROLE_3普通用户
     private Date updatetime;
     private Date createtime;
     private String realname;//真实姓名

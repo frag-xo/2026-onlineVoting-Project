@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @SpringBootApplication
 @MapperScan(basePackages = {"org.mjc.mapper"})
-public class DigitHealthcareBootApplication {
+public class OnlineVoteApplication {
     public static void main(String[] args) {
-        SpringApplication.run(DigitHealthcareBootApplication.class, args);
+        SpringApplication.run(OnlineVoteApplication.class, args);
     }
 }
