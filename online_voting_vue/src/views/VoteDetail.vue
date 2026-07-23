@@ -120,7 +120,7 @@ const refreshCaptcha = async () => {
   try {
     const data = await getCaptcha()
     captchaId.value = data.captchaId
-    captchaImage.value = data.image
+    captchaImage.value = data.img
   } catch (error: any) {
     ElMessage.error(error.message || '获取验证码失败')
   }

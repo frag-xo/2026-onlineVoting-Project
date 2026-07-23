@@ -173,6 +173,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
 import { useRouter } from 'vue-router'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
+import { useRouter } from 'vue-router'
 const router = useRouter()
 onMounted(() => {
   const utype = localStorage.getItem('utype')
@@ -184,6 +185,7 @@ onMounted(() => {
 // ----- 发布投票表单 -----
 const formRef = ref<FormInstance>()
 const publishing = ref(false)
+const router = useRouter()
 const form = reactive({
   title: '',
   options: ['', ''],
