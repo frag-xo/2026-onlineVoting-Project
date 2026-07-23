@@ -44,11 +44,10 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { login } from '@/api/vote'
 
 const router = useRouter()
-const route = useRoute()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -74,14 +73,13 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const user = await login(form.uname, form.pwd)
+        const user: any = await login(form.uname, form.pwd)
         // 保存用户信息到 localStorage
         localStorage.setItem('token', 'logged-in')
         localStorage.setItem('userId', String(user.id))
         localStorage.setItem('username', user.uname)
-        localStorage.setItem('utype', user.utype || 'ROLE_3') // ROLE_1=管理员, ROLE_3=普通用户
+        localStorage.setItem('utype', user.utype || 'ROLE_3')
         ElMessage.success('登录成功！')
-        //const redirect = route.query.redirect as string
         router.push('/')
       } catch (error: any) {
         ElMessage.error(error.message || '登录失败，请检查用户名和密码')
