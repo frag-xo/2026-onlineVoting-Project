@@ -185,8 +185,25 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
             wrapper.le(Vote::getEndTime, queryDTO.getEndTimeEnd());
         }
 
-        // 按创建时间降序
-        wrapper.orderByDesc(Vote::getCreateTime);
+        // 排序逻辑
+        String orderBy = queryDTO.getOrderBy();
+        String orderDirection = queryDTO.getOrderDirection();
+
+        if ("endTime".equals(orderBy)) {
+            // 按截止时间排序
+            if ("asc".equals(orderDirection)) {
+                wrapper.orderByAsc(Vote::getEndTime);
+            } else {
+                wrapper.orderByDesc(Vote::getEndTime);
+            }
+        } else {
+            // 默认按创建时间排序
+            if ("asc".equals(orderDirection)) {
+                wrapper.orderByAsc(Vote::getCreateTime);
+            } else {
+                wrapper.orderByDesc(Vote::getCreateTime);
+            }
+        }
 
         Page<Vote> votePage = this.page(page, wrapper);
 

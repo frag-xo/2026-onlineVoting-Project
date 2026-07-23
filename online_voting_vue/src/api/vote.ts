@@ -3,9 +3,13 @@ import request from './index'
 // ========== 用户端 ==========
 
 // 1. 获取投票列表（分页）
-export const getVoteList = (pageNum = 1, pageSize = 100) => {
-  return request.get('/vote/page/simple', {
-    params: { pageNum, pageSize }
+export const getVoteList = (params: any = {}) => {
+  return request.post('/vote/page', {
+    pageNum: params.pageNum || 1,
+    pageSize: params.pageSize || 100,
+    status: params.status,
+    orderBy: params.orderBy,
+    orderDirection: params.orderDirection
   })
 }
 

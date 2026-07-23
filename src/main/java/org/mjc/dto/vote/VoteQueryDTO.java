@@ -41,4 +41,10 @@ public class VoteQueryDTO {
 
     @Schema(description = "结束时间-止")
     private LocalDateTime endTimeEnd;
+
+    @Schema(description = "排序字段：endTime-截止时间，createTime-创建时间", example = "endTime")
+    private String orderBy;
+
+    @Schema(description = "排序方式：asc-升序，desc-降序", example = "asc")
+    private String orderDirection;
 }
