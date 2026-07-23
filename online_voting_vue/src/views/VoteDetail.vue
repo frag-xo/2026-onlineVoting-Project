@@ -25,8 +25,9 @@
             :key="opt.optionId"
             :label="opt.optionId"
             :disabled="vote.isExpired"
+            class="option-radio"
           >
-            {{ opt.text }}
+            <span class="option-text">{{ opt.text }}</span>
           </el-radio>
         </el-radio-group>
       </div>
@@ -212,14 +213,28 @@ onMounted(() => {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
-.el-radio-group .el-radio:hover {
+.option-radio {
+  display: flex !important;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 14px 18px;
+  border: 1.5px solid #e8e8ec;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.option-radio:hover {
   border-color: #a0a0b8;
   background: #f8f8fc;
-  transform: translateX(2px);
+  transform: translateX(3px);
 }
-.el-radio-group .el-radio.is-checked {
-  border-color: #4361ee;
-  background: #f0f2ff;
+.option-radio.is-checked {
+  border-color: #4361ee !important;
+  background: #f0f2ff !important;
+}
+.option-text {
+  font-weight: 500;
+  color: #1a1a2e;
 }
 .captcha-area {
   margin: 24px 0;

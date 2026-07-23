@@ -26,7 +26,7 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" size="large" @click="handleLogin" :loading="loading" style="width: 100%;">
+          <el-button type="primary" size="large" @click="handleLogin" :loading="loading" class="login-btn">
             登 录
           </el-button>
         </el-form-item>
@@ -44,10 +44,11 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { login } from '@/api/vote'
 
 const router = useRouter()
+const route = useRoute()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -104,8 +105,9 @@ const handleLogin = async () => {
 
         ElMessage.success('登录成功！')
         console.log('5. 准备跳转')
-        router.push('/')
-        console.log('6. 跳转命令已执行')
+        const redirect = (route.query.redirect as string) || '/'
+        router.push(redirect)
+        console.log('6. 跳转命令已执行，目标:', redirect)
       } catch (error: any) {
         console.log('7. catch 捕获到错误:', error)
         ElMessage.error(error.message || '登录失败')
@@ -162,5 +164,22 @@ const goRegister = () => {
   font-size: 14px;
   color: #909399;
   margin-top: 24px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 44px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  background: #4361ee !important;
+  border-color: #4361ee !important;
+  transition: all 0.2s !important;
+}
+
+.login-btn:hover {
+  background: #3651d4 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(67, 97, 238, 0.25) !important;
 }
 </style>

@@ -49,7 +49,6 @@ const checkLoginStatus = () => {
     isLoggedIn.value = true
     username.value = localStorage.getItem('username') || '用户'
     const utype = localStorage.getItem('utype')
-    // ROLE_1 是管理员，其他都是普通用户
     isAdmin.value = utype === 'ROLE_1'
   } else {
     isLoggedIn.value = false
@@ -59,6 +58,11 @@ const checkLoginStatus = () => {
 }
 
 onMounted(() => {
+  checkLoginStatus()
+})
+
+// 监听路由变化，每次切换页面时重新检查登录状态
+router.afterEach(() => {
   checkLoginStatus()
 })
 
@@ -74,7 +78,7 @@ const handleLogout = () => {
   localStorage.removeItem('utype')
   isLoggedIn.value = false
   ElMessage.success('已退出登录')
-  router.push('/')
+  router.push('/login')
 }
 </script>
 
@@ -166,15 +170,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-btn-reg {
-  background: #409eff !important;
+  background: #4361ee !important;
   color: #fff !important;
-  border-color: #409eff !important;
+  border-color: #4361ee !important;
 }
 
 .nav-btn-reg:hover {
-  background: #66b1ff !important;
-  border-color: #66b1ff !important;
+  background: #3651d4 !important;
+  border-color: #3651d4 !important;
   color: #fff !important;
+  transform: scale(1.02);
 }
 
 .logout-btn {
