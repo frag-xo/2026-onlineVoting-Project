@@ -48,7 +48,6 @@ const loadVotes = async () => {
   loading.value = true
   try {
     const data = await getVoteList(1, 100)
-    // 后端返回分页对象：{ records: [...], total, current, pages }
     const records = data.records || data || []
     voteList.value = records.map((item: any) => ({
       id: item.id,

@@ -1,28 +1,19 @@
 <template>
   <div id="app">
-    <!-- 导航栏 -->
     <header class="app-header">
       <div class="header-left">
         <h2 @click="goHome" class="logo">📊 在线投票系统</h2>
       </div>
       <div class="header-right">
-        <!-- 管理员可见：后台管理入口 -->
-        <el-button
-          type="primary"
-          link
-          @click="goAdmin"
-          v-if="isLoggedIn && isAdmin"
-        >
+        <el-button type="primary" link @click="goAdmin" v-if="isLoggedIn">
           后台管理
         </el-button>
 
-        <!-- 已登录：显示用户名 + 退出按钮 -->
         <template v-if="isLoggedIn">
           <span class="username">欢迎，{{ username }}</span>
           <el-button type="danger" link @click="handleLogout">退出登录</el-button>
         </template>
 
-        <!-- 未登录：显示登录 + 注册按钮 -->
         <template v-else>
           <el-button type="primary" link @click="goLogin">登录</el-button>
           <el-button type="primary" link @click="goRegister">注册</el-button>
@@ -30,7 +21,6 @@
       </div>
     </header>
 
-    <!-- 页面内容 -->
     <router-view />
   </div>
 </template>
@@ -51,7 +41,6 @@ const checkLoginStatus = () => {
   if (token) {
     isLoggedIn.value = true
     username.value = localStorage.getItem('username') || '用户'
-    // 后端角色：ROLE_1=管理员，ROLE_3=普通用户
     const utype = localStorage.getItem('utype')
     isAdmin.value = utype === 'ROLE_1'
   } else {

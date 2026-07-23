@@ -81,8 +81,8 @@ const handleLogin = async () => {
         localStorage.setItem('username', user.uname)
         localStorage.setItem('utype', user.utype || 'ROLE_3') // ROLE_1=管理员, ROLE_3=普通用户
         ElMessage.success('登录成功！')
-        const redirect = route.query.redirect as string
-        router.push(redirect || '/')
+        //const redirect = route.query.redirect as string
+        router.push('/')
       } catch (error: any) {
         ElMessage.error(error.message || '登录失败，请检查用户名和密码')
       } finally {

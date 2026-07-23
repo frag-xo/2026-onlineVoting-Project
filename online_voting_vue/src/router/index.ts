@@ -16,15 +16,15 @@ const router = createRouter({
 })
 
 // 路由守卫：判断是否登录
-router.beforeEach((to) => {
-  const token = localStorage.getItem('token')
-  const requiresAuth = ['/admin']
-  if (requiresAuth.includes(to.path)) {
-    if (!token) {
-      return { path: '/login', query: { redirect: to.fullPath } }
-    }
-  }
-  return true
-})
+// router.beforeEach((to) => {
+//  const token = localStorage.getItem('token')
+//  const requiresAuth = ['/admin']
+//  if (requiresAuth.includes(to.path)) {
+//    if (!token) {
+//      return { path: '/login', query: { redirect: to.fullPath } }
+//    }
+//  }
+//  return true
+//})
 
 export default router
