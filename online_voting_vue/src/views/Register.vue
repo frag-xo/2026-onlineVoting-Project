@@ -123,8 +123,8 @@ const goLogin = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #67c23a 0%, #95d475 100%);
+  min-height: calc(100vh - 56px);
+  padding: 20px;
 }
 
 .register-box {

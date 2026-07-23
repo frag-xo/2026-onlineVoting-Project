@@ -171,8 +171,8 @@ onMounted(() => {
 
 <style scoped>
 .detail-container {
-  max-width: 800px;
-  margin: 40px auto;
+  max-width: 700px;
+  margin: 24px auto;
   padding: 0 20px;
 }
 .detail-header {
@@ -180,28 +180,47 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
 }
+.detail-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
 .vote-meta {
   display: flex;
-  gap: 30px;
-  color: #606266;
+  gap: 24px;
+  color: #909399;
+  font-size: 14px;
   margin-bottom: 10px;
 }
 .options-area {
-  margin: 20px 0;
+  margin: 24px 0;
 }
 .options-area h3 {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  color: #303133;
 }
 .el-radio-group .el-radio {
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.el-radio-group .el-radio:hover {
+  border-color: #c6e2ff;
+  background: #f5faff;
+}
+.el-radio-group .el-radio.is-checked {
+  border-color: #409eff;
+  background: #ecf5ff;
 }
 .captcha-area {
-  margin: 20px 0;
+  margin: 24px 0;
 }
 .submit-area {
-  margin-top: 30px;
+  margin-top: 28px;
   display: flex;
-  gap: 15px;
+  gap: 12px;
 }
 </style>

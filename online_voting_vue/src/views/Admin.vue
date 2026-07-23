@@ -504,11 +504,12 @@ onBeforeUnmount(() => {
 <style scoped>
 .admin-container {
   max-width: 1000px;
-  margin: 30px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 0;
 }
 .card-header {
   font-size: 18px;
+  font-weight: 600;
 }
 .option-item {
   display: flex;
@@ -524,18 +525,19 @@ onBeforeUnmount(() => {
 .stat-item {
   flex: 1;
   min-width: 120px;
-  background: #f5f7fa;
-  border-radius: 8px;
-  padding: 20px;
+  background: linear-gradient(135deg, #f0f5ff, #e6f7ff);
+  border-radius: 12px;
+  padding: 24px 20px;
   text-align: center;
+  border: 1px solid #d6e4ff;
 }
 .stat-number {
-  font-size: 32px;
-  font-weight: bold;
+  font-size: 36px;
+  font-weight: 700;
   color: #409eff;
 }
 .stat-label {
-  color: #909399;
+  color: #606266;
   font-size: 14px;
   margin-top: 8px;
 }
@@ -546,13 +548,14 @@ onBeforeUnmount(() => {
 }
 .chart-box {
   background: #fafafa;
-  border-radius: 8px;
-  padding: 15px;
+  border-radius: 10px;
+  padding: 16px;
 }
 .chart-box h4 {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   color: #303133;
+  font-size: 15px;
 }
 .chart-container {
   width: 100%;

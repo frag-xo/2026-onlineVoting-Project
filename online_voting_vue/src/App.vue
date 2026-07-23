@@ -2,13 +2,12 @@
   <div id="app">
     <header class="app-header">
       <div class="header-left">
-        <h2 @click="goHome" class="logo">📊 在线投票系统</h2>
+        <span class="logo-icon">📋</span>
+        <h2 @click="goHome" class="logo">在线投票系统</h2>
       </div>
       <div class="header-right">
-        <!-- 只有管理员能看到后台管理入口 -->
         <el-button
-          type="primary"
-          link
+          class="nav-btn"
           @click="goAdmin"
           v-if="isLoggedIn && isAdmin"
         >
@@ -16,18 +15,20 @@
         </el-button>
 
         <template v-if="isLoggedIn">
-          <span class="username">欢迎，{{ username }}</span>
-          <el-button type="danger" link @click="handleLogout">退出登录</el-button>
+          <span class="username">👋 {{ username }}</span>
+          <el-button class="logout-btn" @click="handleLogout">退出</el-button>
         </template>
 
         <template v-else>
-          <el-button type="primary" link @click="goLogin">登录</el-button>
-          <el-button type="primary" link @click="goRegister">注册</el-button>
+          <el-button class="nav-btn" @click="goLogin">登录</el-button>
+          <el-button class="nav-btn nav-btn-reg" @click="goRegister">注册</el-button>
         </template>
       </div>
     </header>
 
-    <router-view />
+    <main class="app-main">
+      <router-view />
+    </main>
   </div>
 </template>
 
@@ -85,8 +86,9 @@ const handleLogout = () => {
 }
 
 body {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f5f7fa;
+  font-family: 'Helvetica Neue', -apple-system, Arial, sans-serif;
+  background: linear-gradient(135deg, #f0f2f5 0%, #e8ecf1 100%);
+  min-height: 100vh;
 }
 
 #app {
@@ -97,30 +99,91 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 60px;
-  padding: 0 30px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 56px;
+  padding: 0 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  font-size: 22px;
+}
+
 .header-left .logo {
-  font-size: 20px;
-  color: #303133;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
   cursor: pointer;
   user-select: none;
+  letter-spacing: 0.5px;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-right .username {
   color: #606266;
   font-size: 14px;
+}
+
+.nav-btn {
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  padding: 8px 18px !important;
+  border: 1px solid #dcdfe6 !important;
+  background: #fff !important;
+  color: #303133 !important;
+  transition: all 0.2s !important;
+}
+
+.nav-btn:hover {
+  border-color: #409eff !important;
+  color: #409eff !important;
+  background: #ecf5ff !important;
+}
+
+.nav-btn-reg {
+  background: #409eff !important;
+  color: #fff !important;
+  border-color: #409eff !important;
+}
+
+.nav-btn-reg:hover {
+  background: #66b1ff !important;
+  border-color: #66b1ff !important;
+  color: #fff !important;
+}
+
+.logout-btn {
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  padding: 8px 18px !important;
+  border: 1px solid #f56c6c !important;
+  background: #fff !important;
+  color: #f56c6c !important;
+  transition: all 0.2s !important;
+}
+
+.logout-btn:hover {
+  background: #fef0f0 !important;
+}
+
+.app-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
 }
 </style>

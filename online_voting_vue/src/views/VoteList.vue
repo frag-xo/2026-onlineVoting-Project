@@ -1,27 +1,26 @@
 <template>
   <div class="vote-container">
     <div class="page-header">
-      <h1>📊 在线投票系统</h1>
-      <p>参与投票，表达你的观点</p>
-      <el-button type="primary" @click="goAdmin" style="margin-top: 10px;" v-if="isAdmin">
-  ⚙️ 后台管理
-</el-button>
+      <h1>在线投票</h1>
+      <p class="page-subtitle">参与投票，表达你的观点</p>
     </div>
 
     <!-- 筛选区域 -->
     <div class="filter-area">
-      <el-select v-model="statusFilter" placeholder="投票状态" clearable @change="loadVotes">
-        <el-option label="全部" value="" />
-        <el-option label="进行中" :value="1" />
-        <el-option label="未开始" :value="0" />
-        <el-option label="已结束" :value="2" />
-      </el-select>
-      <el-select v-model="sortBy" placeholder="排序方式" @change="loadVotes">
-        <el-option label="按截止时间（早→晚）" value="endTime-asc" />
-        <el-option label="按截止时间（晚→早）" value="endTime-desc" />
-        <el-option label="按创建时间（新→旧）" value="createTime-desc" />
-        <el-option label="按创建时间（旧→新）" value="createTime-asc" />
-      </el-select>
+      <div class="filter-group">
+        <el-select v-model="statusFilter" placeholder="投票状态" clearable @change="loadVotes" class="filter-select">
+          <el-option label="全部投票" value="" />
+          <el-option label="进行中" :value="1" />
+          <el-option label="未开始" :value="0" />
+          <el-option label="已结束" :value="2" />
+        </el-select>
+        <el-select v-model="sortBy" placeholder="排序方式" @change="loadVotes" class="filter-select">
+          <el-option label="按截止时间（早→晚）" value="endTime-asc" />
+          <el-option label="按截止时间（晚→早）" value="endTime-desc" />
+          <el-option label="按创建时间（新→旧）" value="createTime-desc" />
+          <el-option label="按创建时间（旧→新）" value="createTime-asc" />
+        </el-select>
+      </div>
     </div>
 
     <div v-loading="loading" class="vote-grid">
@@ -137,44 +136,87 @@ onMounted(() => {
   font-size: 32px;
   color: #303133;
 }
-.page-header p {
-  color: #909399;
-  font-size: 16px;
+.page-header {
+  text-align: center;
+  margin-bottom: 28px;
 }
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  color: #909399;
+  font-size: 15px;
+}
+
 .filter-area {
+  margin-bottom: 24px;
+}
+
+.filter-group {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  width: 200px;
 }
 .vote-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
 }
+
+.vote-card {
+  border-radius: 12px !important;
+  border: 1px solid #ebeef5 !important;
+  transition: all 0.25s ease !important;
+  cursor: default;
+}
+
 .vote-card:hover {
   transform: translateY(-4px);
-  transition: transform 0.2s;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
+  border-color: #c6e2ff !important;
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
 }
+
 .card-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a2e;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
 }
+
 .vote-meta {
   display: flex;
   justify-content: space-between;
-  color: #606266;
-  font-size: 14px;
-  margin-bottom: 16px;
+  color: #909399;
+  font-size: 13px;
+  margin-bottom: 18px;
 }
+
 .card-actions {
   display: flex;
   gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #f0f2f5;
 }
 </style>

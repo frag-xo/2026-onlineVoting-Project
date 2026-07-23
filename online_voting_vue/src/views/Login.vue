@@ -127,35 +127,38 @@ const goRegister = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #409eff 0%, #79bbff 100%);
+  min-height: calc(100vh - 56px);
+  padding: 20px;
 }
 
 .login-box {
   width: 400px;
-  padding: 40px 35px;
+  padding: 44px 36px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f2f5;
 }
 
 .login-title {
   text-align: center;
-  font-size: 28px;
-  color: #303133;
-  margin-bottom: 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
 }
 
 .login-subtitle {
   text-align: center;
   color: #909399;
   font-size: 14px;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .login-footer {
   text-align: center;
   font-size: 14px;
   color: #909399;
+  margin-top: 24px;
 }
 </style>

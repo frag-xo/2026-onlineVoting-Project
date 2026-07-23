@@ -138,21 +138,30 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .result-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 800px;
+  margin: 24px auto;
+  padding: 0 20px;
 }
 .result-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+.result-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a2e;
 }
 .chart-box {
   width: 100%;
   height: 400px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #f0f2f5;
+  padding: 16px;
 }
 .result-table {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 </style>
