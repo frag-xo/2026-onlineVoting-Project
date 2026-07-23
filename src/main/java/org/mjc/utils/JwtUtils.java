@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -26,6 +27,16 @@ public class JwtUtils {
 
     @Value("${jwt.expiration}")
     private Long expiration;
+
+    /**
+     * 启动时校验JWT密钥长度
+     */
+    @PostConstruct
+    public void init() {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException("JWT密钥长度至少32个字符，当前长度为: " + (secret != null ? secret.length() : 0));
+        }
+    }
 
     /**
      * 生成 token

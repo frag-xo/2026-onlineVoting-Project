@@ -7,6 +7,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.extern.slf4j.Slf4j;
+import org.mjc.exception.BusinessException;
 import org.mjc.service.ShareService;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,7 @@ public class ShareServiceImpl implements ShareService {
 
         } catch (WriterException | IOException e) {
             log.error("生成二维码失败", e);
-            return new byte[0];
+            throw new BusinessException(500, "生成二维码失败：" + e.getMessage());
         }
     }
 }

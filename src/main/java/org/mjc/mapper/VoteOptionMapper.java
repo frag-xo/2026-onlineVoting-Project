@@ -27,14 +27,14 @@ public interface VoteOptionMapper extends BaseMapper<VoteOption> {
     })
 
     /**
-     * 根据投票ID查询所有选项
+     * 根据投票ID查询所有选项（仅查询未删除的）
      */
-    @Select("SELECT * FROM vote_option WHERE vote_id = #{voteId} ORDER BY sort_order ASC")
+    @Select("SELECT * FROM vote_option WHERE vote_id = #{voteId} AND deleted = 0 ORDER BY sort_order ASC")
     List<VoteOption> selectByVoteId(@Param("voteId") Long voteId);
 
     /**
-     * 根据投票ID删除所有选项
+     * 根据投票ID逻辑删除所有选项
      */
-    @Delete("DELETE FROM vote_option WHERE vote_id = #{voteId}")
+    @Update("UPDATE vote_option SET deleted = 1 WHERE vote_id = #{voteId}")
     int deleteByVoteId(@Param("voteId") Long voteId);
 }

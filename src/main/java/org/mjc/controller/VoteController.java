@@ -16,6 +16,7 @@ import org.mjc.exception.BusinessException;
 import org.mjc.service.VoteOptionService;
 import org.mjc.service.VoteRecordService;
 import org.mjc.service.VoteService;
+import org.mjc.service.CaptchaService;
 import org.mjc.service.ExportService;
 import org.mjc.service.ShareService;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +47,7 @@ public class VoteController {
     private VoteRecordService voteRecordService;
 
     @Resource
-    private CaptchaController captchaController;
+    private CaptchaService captchaService;
 
     @Resource
     private ExportService exportService;
@@ -191,7 +192,7 @@ public class VoteController {
         Long userId = (Long) request.getAttribute("currentUserId");
 
         // 1. 验证验证码
-        if (!captchaController.verifyCaptcha(captchaId, captchaCode)) {
+        if (!captchaService.verifyCaptcha(captchaId, captchaCode)) {
             throw new BusinessException(400, "验证码错误或已过期");
         }
 

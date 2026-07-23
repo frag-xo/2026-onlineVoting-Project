@@ -104,7 +104,7 @@ const handleLogin = async () => {
 
         ElMessage.success('登录成功！')
         console.log('5. 准备跳转')
-        window.location.href = '/'
+        router.push('/')
         console.log('6. 跳转命令已执行')
       } catch (error: any) {
         console.log('7. catch 捕获到错误:', error)

@@ -259,7 +259,7 @@ const tableLoading = ref(false)
 const loadVotes = async () => {
   tableLoading.value = true
   try {
-    const data = await getVoteList(1, 100)
+    const data = await getVoteList({ pageNum: 1, pageSize: 100 })
     const records = data.records || data || []
     voteList.value = records.map((item: any) => ({
       id: item.id,

@@ -3,6 +3,7 @@ package org.mjc.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mjc.dto.DTO;
+import org.mjc.service.CaptchaService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,31 +67,6 @@ public class CaptchaController {
         DTO<Map<String, String>> dto = new DTO<>(200, "生成成功");
         dto.setT(result);
         return dto;
-    }
-
-    /**
-     * 验证验证码
-     *
-     * @param captchaId 验证码ID
-     * @param code 用户输入的验证码
-     * @return 是否正确
-     */
-    public boolean verifyCaptcha(String captchaId, String code) {
-        if (captchaId == null || code == null) {
-            return false;
-        }
-
-        String key = CAPTCHA_PREFIX + captchaId;
-        String storedCode = stringRedisTemplate.opsForValue().get(key);
-
-        if (storedCode == null) {
-            return false; // 验证码已过期
-        }
-
-        // 验证后删除验证码（一次性使用）
-        stringRedisTemplate.delete(key);
-
-        return storedCode.equalsIgnoreCase(code.trim());
     }
 
     /**

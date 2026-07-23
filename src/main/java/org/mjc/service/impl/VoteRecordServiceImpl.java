@@ -1,6 +1,7 @@
 package org.mjc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.mjc.entity.VoteRecord;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 投票记录服务实现类
@@ -77,17 +79,17 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordMapper, VoteRec
             return new HashMap<>();
         }
 
-        // 查询所有投票记录
-        List<VoteRecord> records = getRecordsByVoteId(voteId);
+        // 使用SQL GROUP BY统计每个选项的票数（避免内存遍历）
+        QueryWrapper<VoteRecord> wrapper = new QueryWrapper<>();
+        wrapper.eq("vote_id", voteId);
+        wrapper.select("option_id", "COUNT(*) as count");
+        wrapper.groupBy("option_id");
 
-        // 统计每个选项的票数
-        Map<Long, Long> countMap = new HashMap<>();
-        for (VoteRecord record : records) {
-            Long optionId = record.getOptionId();
-            countMap.put(optionId, countMap.getOrDefault(optionId, 0L) + 1);
-        }
-
-        return countMap;
+        List<Map<String, Object>> results = baseMapper.selectMaps(wrapper);
+        return results.stream().collect(Collectors.toMap(
+                row -> (Long) row.get("option_id"),
+                row -> (Long) row.get("count")
+        ));
     }
 
     @Override

@@ -92,6 +92,9 @@ public class AdminController {
         Page<Account> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Account> wrapper = new LambdaQueryWrapper<>();
 
+        // 显式过滤已删除的用户（因已移除@TableLogic注解）
+        wrapper.eq(Account::getDeleted, 0);
+
         if (uname != null && !uname.isEmpty()) {
             wrapper.like(Account::getUname, uname);
         }

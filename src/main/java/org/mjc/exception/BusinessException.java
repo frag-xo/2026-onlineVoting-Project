@@ -7,11 +7,12 @@ import lombok.EqualsAndHashCode;
 @SuppressWarnings("all")
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class BusinessException extends Exception {
+public class BusinessException extends RuntimeException {
 		private String message;
 		private Integer code;
 		public BusinessException(String message) {
-			this.message=message;
+			super(message);
+		this.message=message;
 		}
 
 	public BusinessException(Integer code,String message ) {

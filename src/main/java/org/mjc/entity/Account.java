@@ -82,8 +82,8 @@ public class Account implements Serializable {
 
     /**
      * 逻辑删除：0-未删，1-已删
+     * 不使用@TableLogic注解，手动在SQL中过滤，避免与禁用用户功能冲突
      */
-    @TableLogic
     @TableField("deleted")
     @Schema(description = "逻辑删除：0-未删，1-已删")
     private Integer deleted;
