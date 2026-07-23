@@ -283,23 +283,35 @@
                 </configuration>
             </plugin>
 
-            <!-- 强制检查 JDK 版本 -->
+            <!-- 强制检查环境配置 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.4.1</version>
                 <executions>
                     <execution>
-                        <id>enforce-jdk</id>
+                        <id>enforce-environment</id>
                         <goals>
                             <goal>enforce</goal>
                         </goals>
                         <configuration>
                             <rules>
+                                <!-- 检查 JDK 版本 -->
                                 <requireJavaVersion>
                                     <version>[17,22)</version>
                                     <message>需要 JDK 17-21，当前版本不兼容！</message>
                                 </requireJavaVersion>
+                                <!-- 检查 Maven 版本 -->
+                                <requireMavenVersion>
+                                    <version>[3.6.0,)</version>
+                                    <message>需要 Maven 3.6+，当前版本不兼容！</message>
+                                </requireMavenVersion>
+                                <!-- 检查编码 -->
+                                <requireProperty>
+                                    <property>project.build.sourceEncoding</property>
+                                    <regex>UTF-8</regex>
+                                    <message>项目编码必须是 UTF-8！</message>
+                                </requireProperty>
                             </rules>
                         </configuration>
                     </execution>
