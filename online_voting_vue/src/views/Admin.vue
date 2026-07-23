@@ -36,7 +36,7 @@
             v-model="form.endTime"
             type="datetime"
             placeholder="选择截止时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
           />
         </el-form-item>
 
@@ -76,7 +76,7 @@
             >
               {{ row.status === '进行中' ? '暂停' : '启用' }}
             </el-button>
-            <el-button size="small" type="danger" @click="deleteVote(row.id)">删除</el-button>
+            <el-button size="small" type="danger" @click="handleDeleteVote(row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -153,7 +153,7 @@
             v-model="editForm.endTime"
             type="datetime"
             placeholder="选择截止时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
           />
         </el-form-item>
       </el-form>
@@ -171,7 +171,6 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
-import { useRouter } from 'vue-router'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
 import { useRouter } from 'vue-router'
 const router = useRouter()
@@ -185,7 +184,6 @@ onMounted(() => {
 // ----- 发布投票表单 -----
 const formRef = ref<FormInstance>()
 const publishing = ref(false)
-const router = useRouter()
 const form = reactive({
   title: '',
   options: ['', ''],
@@ -392,7 +390,10 @@ const editRules: FormRules = {
   options: [
     {
       validator: (_rule: any, value: string[], callback: any) => {
-        const filtered = value.filter(item => item.trim() !== '')
+        const strings = value.map((item: any) =>
+            typeof item === 'string' ? item : (item.optionText || item.label || '')
+        )
+        const filtered = strings.filter(s => s.trim() !== '')
         if (filtered.length < 2) {
           callback(new Error('至少需要 2 个有效选项'))
         } else {
@@ -455,7 +456,7 @@ const toggleVoteStatus = async (row: any) => {
       row.status = '已结束'
     } else {
       // 启用：调用更新接口将状态设为1
-      await updateVote({ id: row.id, status: 1 })
+      await updateVote({ id: row.id,title: row.title,endTime: row.deadline,options: row.options?.map((opt: any) => opt.optionText) || [],  status: 1 })
       row.status = '进行中'
     }
     ElMessage.success(`投票已${action}`)
@@ -466,7 +467,7 @@ const toggleVoteStatus = async (row: any) => {
 }
 
 // ----- 删除投票 -----
-const deleteVote = (id: number) => {
+const handleDeleteVote = (id: number) => {
   ElMessageBox.confirm('确认删除该投票吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -487,11 +488,6 @@ onMounted(() => {
   loadVotes()
   loadDashboard()
   window.addEventListener('resize', handleResize)
-  const utype = localStorage.getItem('utype')
-  if (utype !== 'ROLE_1') {
-    ElMessage.warning('您没有管理员权限')
-    router.push('/')
-  }
 })
 
 onBeforeUnmount(() => {
