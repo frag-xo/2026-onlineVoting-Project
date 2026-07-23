@@ -409,7 +409,7 @@ const editRules: FormRules = {
 const editVote = (row: any) => {
   editId.value = row.id
   editForm.title = row.title
-  editForm.options = row.options || ['', '']
+  editForm.options = (row.options || []).map((opt: any) => typeof opt === 'string' ? opt : opt.optionText || '')
   editForm.endTime = row.deadline
   editDialogVisible.value = true
 }
