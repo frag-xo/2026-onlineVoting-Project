@@ -15,7 +15,7 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：只拦截 /admin，检查用户是否为管理员
+// 路由守卫：只有管理员才能访问后台管理
 router.beforeEach((to) => {
   if (to.path === '/admin') {
     const token = localStorage.getItem('token')
@@ -26,6 +26,5 @@ router.beforeEach((to) => {
   }
   return true
 })
-
 
 export default router

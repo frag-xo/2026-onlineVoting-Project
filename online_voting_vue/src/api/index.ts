@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// 设置后端基础地址
 const baseURL = 'http://localhost:8080/api'
 
 const request = axios.create({
@@ -10,23 +11,28 @@ const request = axios.create({
   }
 })
 
-// 请求拦截器
+// ✅ 请求拦截器：自动添加 Token
 request.interceptors.request.use(
-  config => {
+  (config) => {
     const token = localStorage.getItem('token')
+    console.log('🔐 拦截器读取到 token:', token)  // 调试日志
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('✅ 已添加 Authorization 头')
+    } else {
+      console.warn('⚠️ 没有 token，请求可能被拒绝')
     }
     return config
   },
-  error => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error)
+  }
 )
 
 // 响应拦截器
 request.interceptors.response.use(
   (response) => {
     const res = response.data
-    // 后端成功状态码可能是 0 或 200
     if (res.code === 0 || res.code === 200) {
       return res.t !== undefined ? res.t : res
     } else {

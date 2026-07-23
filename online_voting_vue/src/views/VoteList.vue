@@ -3,15 +3,9 @@
     <div class="page-header">
       <h1>📊 在线投票系统</h1>
       <p>参与投票，表达你的观点</p>
-      <!-- 仅管理员可见 -->
-      <el-button
-        type="primary"
-        @click="goAdmin"
-        style="margin-top: 10px;"
-        v-if="isAdmin"
-      >
-        ⚙️ 后台管理
-      </el-button>
+      <el-button type="primary" @click="goAdmin" style="margin-top: 10px;" v-if="isAdmin">
+  ⚙️ 后台管理
+</el-button>
     </div>
 
     <div v-loading="loading" class="vote-grid">

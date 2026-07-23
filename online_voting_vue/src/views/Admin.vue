@@ -171,6 +171,7 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
+import { useRouter } from 'vue-router'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
 import { useRouter } from 'vue-router'
 const router = useRouter()
@@ -184,6 +185,7 @@ onMounted(() => {
 // ----- 发布投票表单 -----
 const formRef = ref<FormInstance>()
 const publishing = ref(false)
+const router = useRouter()
 const form = reactive({
   title: '',
   options: ['', ''],
@@ -485,6 +487,11 @@ onMounted(() => {
   loadVotes()
   loadDashboard()
   window.addEventListener('resize', handleResize)
+  const utype = localStorage.getItem('utype')
+  if (utype !== 'ROLE_1') {
+    ElMessage.warning('您没有管理员权限')
+    router.push('/')
+  }
 })
 
 onBeforeUnmount(() => {
