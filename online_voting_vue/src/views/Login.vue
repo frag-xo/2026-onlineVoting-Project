@@ -73,16 +73,36 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const user: any = await login(form.uname, form.pwd)
-        // 保存用户信息到 localStorage
-        localStorage.setItem('token', 'logged-in')
+        console.log('1. 开始调用 login 接口')
+        const res: any = await login(form.uname, form.pwd)
+        console.log('2. login 返回:', res)
+
+        // 注意：响应拦截器可能已经返回了 t 对象
+        // 如果 res 是 { uname, utype, id, token, realname }，直接用
+        // 如果 res 是 { code, msg, t, ... }，需要用 res.t
+        const user = res
+        const token = user.token
+        console.log('3. 提取的 token:', token)
+
+        if (!token) {
+          console.error('token 为空！响应结构可能是:', res)
+          ElMessage.error('登录响应中没有 token')
+          return
+        }
+
+        localStorage.setItem('token', token)
         localStorage.setItem('userId', String(user.id))
         localStorage.setItem('username', user.uname)
         localStorage.setItem('utype', user.utype || 'ROLE_3')
+        console.log('4. localStorage 存储完成')
+
         ElMessage.success('登录成功！')
-        router.push('/')
+        console.log('5. 准备跳转')
+        window.location.href = '/'
+        console.log('6. 跳转命令已执行')
       } catch (error: any) {
-        ElMessage.error(error.message || '登录失败，请检查用户名和密码')
+        console.log('7. catch 捕获到错误:', error)
+        ElMessage.error(error.message || '登录失败')
       } finally {
         loading.value = false
       }

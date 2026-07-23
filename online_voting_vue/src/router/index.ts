@@ -15,16 +15,16 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：判断是否登录
-// router.beforeEach((to) => {
-//  const token = localStorage.getItem('token')
-//  const requiresAuth = ['/admin']
-//  if (requiresAuth.includes(to.path)) {
-//    if (!token) {
-//      return { path: '/login', query: { redirect: to.fullPath } }
-//    }
-//  }
-//  return true
-//})
+// 路由守卫：只有管理员才能访问后台管理
+router.beforeEach((to) => {
+  if (to.path === '/admin') {
+    const token = localStorage.getItem('token')
+    const utype = localStorage.getItem('utype')
+    if (!token || utype !== 'ROLE_1') {
+      return { path: '/', query: { redirect: to.fullPath } }
+    }
+  }
+  return true
+})
 
 export default router

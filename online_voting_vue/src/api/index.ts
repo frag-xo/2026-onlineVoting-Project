@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-// 配置后端地址
+// 设置后端基础地址
 const baseURL = 'http://localhost:8080/api'
 
 const request = axios.create({
@@ -11,33 +11,35 @@ const request = axios.create({
   }
 })
 
-// 请求拦截器（可加 token）
+// ✅ 请求拦截器：自动添加 Token
 request.interceptors.request.use(
-  config => {
-    // 如果有 token，在这里添加
-    // const token = localStorage.getItem('token')
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+  (config) => {
+    const token = localStorage.getItem('token')
+    console.log('🔐 拦截器读取到 token:', token)  // 调试日志
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+      console.log('✅ 已添加 Authorization 头')
+    } else {
+      console.warn('⚠️ 没有 token，请求可能被拒绝')
+    }
     return config
   },
-  error => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error)
+  }
 )
 
-// 响应拦截器：适配后端返回格式 { code, msg, t, ... }
+// 响应拦截器
 request.interceptors.response.use(
-  response => {
+  (response) => {
     const res = response.data
-    // 后端成功返回 code === 0，数据在 t 字段
-    if (res.code === 0) {
-      // 如果 t 存在则返回 t，否则返回整个 res（兼容其他情况）
+    if (res.code === 0 || res.code === 200) {
       return res.t !== undefined ? res.t : res
     } else {
-      // 错误时返回 msg
       return Promise.reject(new Error(res.msg || '请求失败'))
     }
   },
-  error => {
+  (error) => {
     console.error('接口请求失败：', error)
     return Promise.reject(error)
   }

@@ -5,7 +5,13 @@
         <h2 @click="goHome" class="logo">📊 在线投票系统</h2>
       </div>
       <div class="header-right">
-        <el-button type="primary" link @click="goAdmin" v-if="isLoggedIn">
+        <!-- 只有管理员能看到后台管理入口 -->
+        <el-button
+          type="primary"
+          link
+          @click="goAdmin"
+          v-if="isLoggedIn && isAdmin"
+        >
           后台管理
         </el-button>
 
@@ -42,6 +48,7 @@ const checkLoginStatus = () => {
     isLoggedIn.value = true
     username.value = localStorage.getItem('username') || '用户'
     const utype = localStorage.getItem('utype')
+    // ROLE_1 是管理员，其他都是普通用户
     isAdmin.value = utype === 'ROLE_1'
   } else {
     isLoggedIn.value = false
