@@ -173,7 +173,15 @@ import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
 import { useRouter } from 'vue-router'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
-
+import { useRouter } from 'vue-router'
+const router = useRouter()
+onMounted(() => {
+  const utype = localStorage.getItem('utype')
+  if (utype !== 'ROLE_1') {
+    ElMessage.warning('您没有管理员权限')
+    router.push('/')
+  }
+})
 // ----- 发布投票表单 -----
 const formRef = ref<FormInstance>()
 const publishing = ref(false)
@@ -224,17 +232,20 @@ const handlePublish = async () => {
       publishing.value = true
       try {
         const filteredOptions = form.options.filter(item => item.trim() !== '')
+        const userId = Number(localStorage.getItem('userId') || 0)
         await createVote({
           title: form.title,
           description: '',
           status: 1,
           endTime: form.endTime,
-          options: filteredOptions
+          options: filteredOptions,
+          creatorId: userId
         })
         ElMessage.success('投票发布成功！')
         resetForm()
         await loadVotes()
       } catch (error: any) {
+        console.error('发布失败完整错误:', error)
         ElMessage.error(error.message || '发布失败')
       } finally {
         publishing.value = false

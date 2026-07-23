@@ -9,9 +9,9 @@
     </div>
 
     <div v-loading="loading" class="vote-grid">
-      <el-card 
-        v-for="item in voteList" 
-        :key="item.id" 
+      <el-card
+        v-for="item in voteList"
+        :key="item.id"
         class="vote-card"
         shadow="hover"
       >

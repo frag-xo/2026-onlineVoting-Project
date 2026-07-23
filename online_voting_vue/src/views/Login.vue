@@ -68,10 +68,16 @@ const rules: FormRules = {
 }
 
 const handleLogin = async () => {
-  if (!formRef.value) return
+  console.log('1. handleLogin 开始执行')
+  if (!formRef.value) {
+    console.log('2. formRef 为空，退出')
+    return
+  }
   await formRef.value.validate(async (valid) => {
+    console.log('3. 表单验证结果:', valid)
     if (valid) {
       loading.value = true
+      console.log('4. 开始调用 login 接口')
       try {
         console.log('1. 开始调用 login 接口')
         const res: any = await login(form.uname, form.pwd)
@@ -105,6 +111,7 @@ const handleLogin = async () => {
         ElMessage.error(error.message || '登录失败')
       } finally {
         loading.value = false
+        console.log('10. finally 执行完毕')
       }
     }
   })
