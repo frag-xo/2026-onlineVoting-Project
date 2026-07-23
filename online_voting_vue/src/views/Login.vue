@@ -44,11 +44,10 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { login } from '@/api/vote'
 
 const router = useRouter()
-const route = useRoute()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
@@ -105,9 +104,8 @@ const handleLogin = async () => {
 
         ElMessage.success('登录成功！')
         console.log('5. 准备跳转')
-        const redirect = (route.query.redirect as string) || '/'
-        router.push(redirect)
-        console.log('6. 跳转命令已执行，目标:', redirect)
+        router.push('/')
+        console.log('6. 跳转命令已执行')
       } catch (error: any) {
         console.log('7. catch 捕获到错误:', error)
         ElMessage.error(error.message || '登录失败')
