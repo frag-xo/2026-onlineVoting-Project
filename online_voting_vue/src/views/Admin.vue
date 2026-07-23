@@ -332,13 +332,17 @@ const initBarChart = () => {
 const initLineChart = () => {
   if (!lineChartRef.value) return
   lineChart = echarts.init(lineChartRef.value)
-  const days = ['7/16', '7/17', '7/18', '7/19', '7/20', '7/21', '今日']
-  const values = [120, 150, 180, 220, 280, 350, 420]
+
+  // 使用投票列表的真实数据，按创建时间排序后展示参与人数趋势
+  const sorted = [...voteList.value].reverse() // 最早的在前
+  const labels = sorted.map(item => item.title.length > 6 ? item.title.slice(0, 6) + '...' : item.title)
+  const values = sorted.map(item => item.totalVotes)
+
   const option = {
     tooltip: { trigger: 'axis' },
     xAxis: {
       type: 'category',
-      data: days
+      data: labels
     },
     yAxis: { type: 'value', name: '参与人数' },
     series: [{

@@ -115,7 +115,7 @@ const handleResize = () => {
 }
 
 const startPolling = () => {
-  timer = setInterval(loadResult, 3000)
+  timer = setInterval(loadResult, 30000)
 }
 
 const goBack = () => {
