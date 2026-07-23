@@ -142,10 +142,12 @@ onMounted(() => {
 }
 
 .page-header h1 {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   color: #1a1a2e;
   margin-bottom: 6px;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .page-subtitle {
@@ -174,16 +176,17 @@ onMounted(() => {
 }
 
 .vote-card {
-  border-radius: 12px !important;
-  border: 1px solid #ebeef5 !important;
-  transition: all 0.25s ease !important;
+  border-radius: 14px !important;
+  border: 1px solid #f0f0f0 !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: default;
+  background: #fff !important;
 }
 
 .vote-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08) !important;
-  border-color: #c6e2ff !important;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.02) !important;
+  border-color: #d4d4d4 !important;
 }
 
 .card-header {

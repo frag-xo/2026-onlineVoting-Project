@@ -135,17 +135,19 @@ const goRegister = () => {
   width: 400px;
   padding: 44px 36px;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0f2f5;
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .login-title {
   text-align: center;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   color: #1a1a2e;
   margin-bottom: 6px;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .login-subtitle {

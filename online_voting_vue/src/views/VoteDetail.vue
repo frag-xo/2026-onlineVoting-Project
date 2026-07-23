@@ -181,39 +181,45 @@ onMounted(() => {
   align-items: center;
 }
 .detail-header h2 {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
   color: #1a1a2e;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
 }
 .vote-meta {
   display: flex;
-  gap: 24px;
-  color: #909399;
+  gap: 28px;
+  color: #8e8ea0;
   font-size: 14px;
   margin-bottom: 10px;
 }
 .options-area {
-  margin: 24px 0;
+  margin: 28px 0;
 }
 .options-area h3 {
   margin-bottom: 16px;
-  color: #303133;
+  color: #1a1a2e;
+  font-size: 16px;
+  font-weight: 500;
 }
 .el-radio-group .el-radio {
   display: block;
-  margin-bottom: 14px;
-  padding: 12px 16px;
-  border: 1px solid #ebeef5;
-  border-radius: 8px;
-  transition: all 0.2s;
+  margin-bottom: 10px;
+  padding: 14px 18px;
+  border: 1.5px solid #e8e8ec;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
 }
 .el-radio-group .el-radio:hover {
-  border-color: #c6e2ff;
-  background: #f5faff;
+  border-color: #a0a0b8;
+  background: #f8f8fc;
+  transform: translateX(2px);
 }
 .el-radio-group .el-radio.is-checked {
-  border-color: #409eff;
-  background: #ecf5ff;
+  border-color: #4361ee;
+  background: #f0f2ff;
 }
 .captcha-area {
   margin: 24px 0;
