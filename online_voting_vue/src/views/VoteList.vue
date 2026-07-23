@@ -3,13 +3,21 @@
     <div class="page-header">
       <h1>📊 在线投票系统</h1>
       <p>参与投票，表达你的观点</p>
-      <el-button type="primary" @click="goAdmin" style="margin-top: 10px;">⚙️ 后台管理</el-button>
+      <!-- 仅管理员可见 -->
+      <el-button
+        type="primary"
+        @click="goAdmin"
+        style="margin-top: 10px;"
+        v-if="isAdmin"
+      >
+        ⚙️ 后台管理
+      </el-button>
     </div>
 
     <div v-loading="loading" class="vote-grid">
-      <el-card 
-        v-for="item in voteList" 
-        :key="item.id" 
+      <el-card
+        v-for="item in voteList"
+        :key="item.id"
         class="vote-card"
         shadow="hover"
       >
@@ -43,6 +51,7 @@ import { getVoteList } from '@/api/vote'
 const router = useRouter()
 const voteList = ref<any[]>([])
 const loading = ref(false)
+const isAdmin = ref(false)
 
 const loadVotes = async () => {
   loading.value = true
@@ -78,6 +87,8 @@ const goAdmin = () => {
 
 onMounted(() => {
   loadVotes()
+  const utype = localStorage.getItem('utype')
+  isAdmin.value = utype === 'ROLE_1'
 })
 </script>
 

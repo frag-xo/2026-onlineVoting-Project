@@ -5,9 +5,9 @@
         <h2 @click="goHome" class="logo">📊 在线投票系统</h2>
       </div>
       <div class="header-right">
-        <el-button type="primary" link @click="goAdmin" v-if="isLoggedIn">
-          后台管理
-        </el-button>
+        <el-button type="primary" link @click="goAdmin" v-if="isLoggedIn && isAdmin">
+  后台管理
+</el-button>
 
         <template v-if="isLoggedIn">
           <span class="username">欢迎，{{ username }}</span>
@@ -42,6 +42,7 @@ const checkLoginStatus = () => {
     isLoggedIn.value = true
     username.value = localStorage.getItem('username') || '用户'
     const utype = localStorage.getItem('utype')
+    // 后端返回的角色：ROLE_1=管理员，ROLE_3=普通用户
     isAdmin.value = utype === 'ROLE_1'
   } else {
     isLoggedIn.value = false

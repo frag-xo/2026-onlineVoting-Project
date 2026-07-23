@@ -68,23 +68,36 @@ const rules: FormRules = {
 }
 
 const handleLogin = async () => {
-  if (!formRef.value) return
+  console.log('1. handleLogin 开始执行')
+  if (!formRef.value) {
+    console.log('2. formRef 为空，退出')
+    return
+  }
   await formRef.value.validate(async (valid) => {
+    console.log('3. 表单验证结果:', valid)
     if (valid) {
       loading.value = true
+      console.log('4. 开始调用 login 接口')
       try {
-        const user: any = await login(form.uname, form.pwd)
-        // 保存用户信息到 localStorage
-        localStorage.setItem('token', 'logged-in')
+        const res: any = await login(form.uname, form.pwd)
+        console.log('5. login 接口返回:', res)
+        const user = res
+        const token = user.token
+        console.log('6. 获取到 token:', token)
+        localStorage.setItem('token', token)
         localStorage.setItem('userId', String(user.id))
         localStorage.setItem('username', user.uname)
         localStorage.setItem('utype', user.utype || 'ROLE_3')
         ElMessage.success('登录成功！')
-        router.push('/')
+        console.log('7. 准备跳转到首页')
+        window.location.href = '/'
+        console.log('8. 跳转命令已执行')
       } catch (error: any) {
+        console.log('9. catch 捕获到错误:', error)
         ElMessage.error(error.message || '登录失败，请检查用户名和密码')
       } finally {
         loading.value = false
+        console.log('10. finally 执行完毕')
       }
     }
   })
