@@ -50,7 +50,7 @@ export const getCaptcha = () => {
 
 // ========== 管理端 ==========
 
-// 7. 新增投票（管理员直接发布）
+// 7. 新增投票（管理员）
 export const createVote = (data: {
   title: string
   description?: string
@@ -92,18 +92,14 @@ export const getDashboard = () => {
   return request.get('/admin/dashboard')
 }
 
-<<<<<<< Updated upstream
 // 15. 获取投票趋势数据（管理员）
-=======
-// 12. 获取投票趋势（管理员）
->>>>>>> Stashed changes
 export const getTrend = () => {
   return request.get('/admin/trend')
 }
 
 // ========== 用户账号 ==========
 
-// 13. 用户注册
+// 12. 用户注册
 export const register = (data: {
   uname: string
   pwd: string
@@ -115,148 +111,9 @@ export const register = (data: {
   })
 }
 
-// 14. 用户登录
+// 13. 用户登录
 export const login = (uname: string, pwd: string) => {
   return request.post('/account/login', null, {
     params: { uname, pwd }
   })
-<<<<<<< Updated upstream
-=======
-}
-
-// 15. 用户登出
-export const logout = () => {
-  return request.post('/account/logout')
-}
-
-// 16. 修改用户名
-export const updateUsername = (newUsername: string) => {
-  return request.put('/account/username', null, {
-    params: { newUsername }
-  })
-}
-
-// 17. 上传头像
-export const uploadAvatar = (file: File) => {
-  const formData = new FormData()
-  formData.append('file', file)
-  return request.post('/account/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
-}
-
-// ========== 普通用户发布投票（待审核） ==========
-
-// 18. 普通用户发布投票（需审核）
-export const submitVoteForAudit = (data: {
-  title: string
-  description?: string
-  endTime: string
-  options: string[]
-}) => {
-  return request.post('/vote/submit', data)
-}
-
-// ========== 投票排行 & 历史 ==========
-
-// 19. 投票排行
-export const getVoteRanking = (limit = 10) => {
-  return request.get('/vote/ranking', { params: { limit } })
-}
-
-// 20. 用户投票历史
-export const getVoteHistory = () => {
-  return request.get('/vote/history')
-}
-
-// ========== 收藏 ==========
-
-// 21. 获取收藏列表
-export const getFavorites = () => {
-  return request.get('/user/favorites')
-}
-
-// 22. 收藏投票
-export const favoriteVote = (voteId: number) => {
-  return request.post(`/user/favorite/${voteId}`)
-}
-
-// 23. 取消收藏
-export const unfavoriteVote = (voteId: number) => {
-  return request.delete(`/user/favorite/${voteId}`)
-}
-
-// 24. 检查是否已收藏
-export const checkFavorited = (voteId: number) => {
-  return request.get(`/user/favorite/check/${voteId}`)
-}
-
-// ========== 评论 ==========
-
-// 25. 添加评论
-export const addComment = (voteId: number, content: string, parentId?: number) => {
-  return request.post('/user/comment', null, {
-    params: { voteId, content, parentId }
-  })
-}
-
-// 26. 获取评论列表
-export const getComments = (voteId: number) => {
-  return request.get(`/user/comments/${voteId}`)
-}
-
-// 27. 删除评论
-export const deleteComment = (commentId: number) => {
-  return request.delete(`/user/comment/${commentId}`)
-}
-
-// ========== 审核 ==========
-
-// 28. 获取待审核列表（管理员）
-export const getPendingAudits = () => {
-  return request.get('/vote-audit/pending')
-}
-
-// 29. 审核投票（管理员）
-export const auditVote = (voteId: number, status: number, remark?: string) => {
-  return request.post('/vote-audit/audit', null, {
-    params: { voteId, status, remark }
-  })
-}
-
-// ========== 通知 ==========
-
-// 30. 获取通知列表
-export const getNotifications = () => {
-  return request.get('/user/notifications')
-}
-
-// 31. 获取未读通知数
-export const getUnreadCount = () => {
-  return request.get('/user/notifications/unread-count')
-}
-
-// 32. 标记通知已读
-export const markNotificationRead = (id: number) => {
-  return request.put(`/user/notifications/${id}/read`)
-}
-
-// 33. 全部标记已读
-export const markAllRead = () => {
-  return request.put('/user/notifications/read-all')
-}
-
-// ========== 积分 ==========
-
-// 34. 获取用户积分
-export const getMyPoints = () => {
-  return request.get('/points/my')
-}
-
-// ========== 投票分组 ==========
-
-// 35. 获取分组列表
-export const getGroupList = () => {
-  return request.get('/vote-group/list')
->>>>>>> Stashed changes
 }
