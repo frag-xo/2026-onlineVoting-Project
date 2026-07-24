@@ -68,8 +68,9 @@ public class AccountController {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
 
-        // 初始化用户积分
+        // 初始化用户积分（注册+20）
         userPointsService.initUserPoints(account.getId());
+        userPointsService.addPoints(account.getId(), 20, "register", "初次注册奖励");
 
         // 返回时不包含密码
         account.setPwd(null);
@@ -96,6 +97,9 @@ public class AccountController {
 
         // 设置用户上线
         onlineUserService.userOnline(account.getId(), account.getUname());
+
+        // 每日登录积分（+10）
+        userPointsService.addDailyLoginPoints(account.getId());
 
         // 返回 token 和用户信息
         Map<String, Object> result = new HashMap<>();

@@ -45,6 +45,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         account.setRealname(realname);
         account.setPhoneNumber(phoneNumber);
         account.setUtype("ROLE_3"); // 默认投票参与人员
+        account.setLevel(1); // 默认等级1
         account.setCreateTime(LocalDateTime.now());
         account.setUpdateTime(LocalDateTime.now());
 

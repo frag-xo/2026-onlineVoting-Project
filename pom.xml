@@ -318,24 +318,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>gen-webadmin</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <tasks>
-                                <copy todir="docker"
-                                      file="target/${project.artifactId}-${project.version}.jar" />
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
 
             <!-- 资源文件处理插件 -->
             <plugin>

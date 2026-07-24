@@ -74,6 +74,13 @@ public class Account implements Serializable {
     private String avatar;
 
     /**
+     * 用户等级：1-普通用户，2-活跃用户，3-资深用户，4-专家，5-大师
+     */
+    @TableField("level")
+    @Schema(description = "用户等级：1-5")
+    private Integer level;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

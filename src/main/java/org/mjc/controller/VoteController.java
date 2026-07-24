@@ -224,10 +224,11 @@ public class VoteController {
             throw new BusinessException(ErrorCode.VOTE_ALREADY_VOTED);
         }
 
-        // 6. 投票成功，奖励积分
-        userPointsService.addPoints(userId, 10, "vote", "参与投票奖励");
+        // 6. 投票成功，奖励积分（+5，每天最多20次）
+        boolean pointsAdded = userPointsService.addVotePoints(userId);
+        String msg = pointsAdded ? "投票成功，获得5积分" : "投票成功";
 
-        return new DTO<>(200, "投票成功，获得10积分");
+        return new DTO<>(200, msg);
     }
 
     @Operation(summary = "查询投票结果", description = "查询投票的统计结果")
