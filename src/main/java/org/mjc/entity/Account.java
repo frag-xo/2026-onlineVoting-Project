@@ -67,6 +67,13 @@ public class Account implements Serializable {
     private String realname;
 
     /**
+     * 头像URL
+     */
+    @TableField("avatar")
+    @Schema(description = "头像URL")
+    private String avatar;
+
+    /**
      * 创建时间
      */
     @TableField(value = "create_time", fill = FieldFill.INSERT)

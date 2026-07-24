@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.mjc.dto.DTO;
+import org.mjc.service.OnlineUserService;
 import org.mjc.utils.JwtUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -24,6 +25,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Resource
     private JwtUtils jwtUtils;
+
+    @Resource
+    private OnlineUserService onlineUserService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -100,6 +104,26 @@ public class AuthInterceptor implements HandlerInterceptor {
             needAdmin = true;
         }
 
+        // 5. 在线用户管理（除心跳外全部需要管理员）
+        if (uri.startsWith("/api/online") && !uri.contains("/heartbeat")) {
+            needAdmin = true;
+        }
+
+        // 6. 投票审核全部需要管理员
+        if (uri.startsWith("/api/vote-audit")) {
+            needAdmin = true;
+        }
+
+        // 7. 投票分组管理需要管理员
+        if (uri.startsWith("/api/vote-group") && !"GET".equalsIgnoreCase(method)) {
+            needAdmin = true;
+        }
+
+        // 8. 积分管理（添加积分需要管理员）
+        if (uri.startsWith("/api/points/add")) {
+            needAdmin = true;
+        }
+
         if (needAdmin) {
             if (!"GET".equalsIgnoreCase(method)) {
                 if (!"ROLE_1".equals(utype)) {
@@ -114,6 +138,9 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 将用户信息放入请求属性，方便后续使用
         request.setAttribute("currentUserId", userId);
         request.setAttribute("currentUserRole", utype);
+
+        // 心跳检测：更新用户在线状态
+        onlineUserService.heartbeat(userId);
 
         return true;
     }

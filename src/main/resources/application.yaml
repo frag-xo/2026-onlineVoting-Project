@@ -3,7 +3,7 @@ spring:
   # 数据源配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/online_vote?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/online_vote?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
@@ -70,7 +70,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
   mapper-locations: classpath*:mapper/**/*.xml
-  type-aliases-package: org.lg.entity
+  type-aliases-package: org.mjc.entity
 
 # JWT 配置
 jwt:
@@ -89,11 +89,10 @@ springdoc:
     enabled: true
   show-actuator: true
 
-# 日志配置
+# 日志配置（使用SpringBoot默认Logback）
 logging:
-  config: classpath:log4j2.xml
   level:
-    org.lg: debug
+    org.mjc: debug
     com.baomidou.mybatisplus: debug
 
 # 服务器配置

@@ -94,4 +94,46 @@ public class Vote implements Serializable {
     @TableField("deleted")
     @Schema(description = "逻辑删除：0-未删，1-已删")
     private Integer deleted;
+
+    /**
+     * 审核状态：0-待审核，1-已通过，2-已拒绝
+     */
+    @TableField("audit_status")
+    @Schema(description = "审核状态：0-待审核，1-已通过，2-已拒绝")
+    private Integer auditStatus;
+
+    /**
+     * 审核备注
+     */
+    @TableField("audit_msg")
+    @Schema(description = "审核备注")
+    private String auditMsg;
+
+    /**
+     * 是否匿名投票：0-否，1-是
+     */
+    @TableField("is_anonymous")
+    @Schema(description = "是否匿名投票：0-否，1-是")
+    private Integer isAnonymous;
+
+    /**
+     * 投票类型：1-单选，2-多选
+     */
+    @TableField("vote_type")
+    @Schema(description = "投票类型：1-单选，2-多选")
+    private Integer voteType;
+
+    /**
+     * 定时发布时间（null表示立即发布）
+     */
+    @TableField("publish_time")
+    @Schema(description = "定时发布时间")
+    private LocalDateTime publishTime;
+
+    /**
+     * 所属分组ID
+     */
+    @TableField("group_id")
+    @Schema(description = "所属分组ID")
+    private Long groupId;
 }

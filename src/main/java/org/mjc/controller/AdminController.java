@@ -11,13 +11,17 @@ import org.mjc.entity.Account;
 import org.mjc.entity.Vote;
 import org.mjc.entity.VoteRecord;
 import org.mjc.exception.BusinessException;
+import org.mjc.exception.ErrorCode;
 import org.mjc.service.AccountService;
+import org.mjc.service.OnlineUserService;
 import org.mjc.service.VoteRecordService;
 import org.mjc.service.VoteService;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +43,9 @@ public class AdminController {
 
     @Resource
     private VoteRecordService voteRecordService;
+
+    @Resource
+    private OnlineUserService onlineUserService;
 
     // ==================== 数据看板 ====================
 
@@ -64,6 +71,9 @@ public class AdminController {
         voteWrapper.eq(Vote::getStatus, 2);
         long endedVoteCount = voteService.count(voteWrapper);
 
+        // 在线用户数
+        int onlineUserCount = onlineUserService.getOnlineCount();
+
         // 封装返回数据
         Map<String, Object> result = new HashMap<>();
         result.put("voteCount", voteCount);
@@ -71,6 +81,62 @@ public class AdminController {
         result.put("recordCount", recordCount);
         result.put("ongoingVoteCount", ongoingVoteCount);
         result.put("endedVoteCount", endedVoteCount);
+        result.put("onlineUserCount", onlineUserCount);
+
+        DTO<Map<String, Object>> dto = new DTO<>(200, "查询成功");
+        dto.setT(result);
+        return dto;
+    }
+
+    @Operation(summary = "投票趋势数据", description = "获取投票参与趋势数据，用于图表展示")
+    @GetMapping("/trend")
+    public DTO<Map<String, Object>> getTrend() {
+        // 获取所有投票
+        List<Vote> allVotes = voteService.getAllVotes();
+
+        // 柱状图数据：各投票的参与人数
+        List<String> voteTitles = new ArrayList<>();
+        List<Long> voteCounts = new ArrayList<>();
+        for (Vote vote : allVotes) {
+            // 截断标题，最多6个字符
+            String title = vote.getTitle();
+            if (title.length() > 6) {
+                title = title.substring(0, 6) + "...";
+            }
+            voteTitles.add(title);
+
+            // 统计该投票的参与人数
+            Map<Long, Long> countMap = voteRecordService.countByOptionId(vote.getId());
+            long totalCount = countMap.values().stream().mapToLong(Long::longValue).sum();
+            voteCounts.add(totalCount);
+        }
+
+        // 折线图数据：按创建时间排序的投票参与趋势
+        List<String> trendLabels = new ArrayList<>();
+        List<Long> trendValues = new ArrayList<>();
+        // 按创建时间正序（最早的在前）
+        allVotes.sort((a, b) -> {
+            if (a.getCreateTime() == null) return 1;
+            if (b.getCreateTime() == null) return -1;
+            return a.getCreateTime().compareTo(b.getCreateTime());
+        });
+        for (Vote vote : allVotes) {
+            String label = vote.getTitle();
+            if (label.length() > 6) {
+                label = label.substring(0, 6) + "...";
+            }
+            trendLabels.add(label);
+
+            Map<Long, Long> countMap = voteRecordService.countByOptionId(vote.getId());
+            long totalCount = countMap.values().stream().mapToLong(Long::longValue).sum();
+            trendValues.add(totalCount);
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("voteTitles", voteTitles);
+        result.put("voteCounts", voteCounts);
+        result.put("trendLabels", trendLabels);
+        result.put("trendValues", trendValues);
 
         DTO<Map<String, Object>> dto = new DTO<>(200, "查询成功");
         dto.setT(result);
@@ -120,7 +186,7 @@ public class AdminController {
 
         Account account = accountService.getById(userId);
         if (account == null) {
-            throw new BusinessException(404, "用户不存在");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 验证角色值
@@ -132,7 +198,7 @@ public class AdminController {
         account.setUpdateTime(java.time.LocalDateTime.now());
         boolean result = accountService.updateById(account);
         if (!result) {
-            throw new BusinessException(500, "修改失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
 
         DTO<Void> dto = new DTO<>(200, "修改角色成功");
@@ -149,7 +215,7 @@ public class AdminController {
 
         Account account = accountService.getById(userId);
         if (account == null) {
-            throw new BusinessException(404, "用户不存在");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 使用deleted字段表示状态：0-启用，1-禁用
@@ -157,7 +223,7 @@ public class AdminController {
         account.setUpdateTime(java.time.LocalDateTime.now());
         boolean result = accountService.updateById(account);
         if (!result) {
-            throw new BusinessException(500, "修改失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
 
         DTO<Void> dto = new DTO<>(200, status == 1 ? "启用成功" : "禁用成功");
@@ -172,12 +238,12 @@ public class AdminController {
 
         Account account = accountService.getById(id);
         if (account == null) {
-            throw new BusinessException(404, "用户不存在");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         boolean result = accountService.removeById(id);
         if (!result) {
-            throw new BusinessException(500, "删除失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
 
         DTO<Void> dto = new DTO<>(200, "删除成功");

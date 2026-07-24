@@ -92,6 +92,11 @@ export const getDashboard = () => {
   return request.get('/admin/dashboard')
 }
 
+// 15. 获取投票趋势数据（管理员）
+export const getTrend = () => {
+  return request.get('/admin/trend')
+}
+
 // ========== 用户账号 ==========
 
 // 12. 用户注册
@@ -111,9 +116,4 @@ export const login = (uname: string, pwd: string) => {
   return request.post('/account/login', null, {
     params: { uname, pwd }
   })
-}
-
-// 获取每日参与趋势（近7天）
-export const getTrend = () => {
-  return request.get('/admin/trend')
 }

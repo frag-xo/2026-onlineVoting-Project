@@ -13,12 +13,8 @@ import org.mjc.entity.Vote;
 import org.mjc.entity.VoteOption;
 import org.mjc.entity.VoteRecord;
 import org.mjc.exception.BusinessException;
-import org.mjc.service.VoteOptionService;
-import org.mjc.service.VoteRecordService;
-import org.mjc.service.VoteService;
-import org.mjc.service.CaptchaService;
-import org.mjc.service.ExportService;
-import org.mjc.service.ShareService;
+import org.mjc.exception.ErrorCode;
+import org.mjc.service.*;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
@@ -55,6 +51,12 @@ public class VoteController {
     @Resource
     private ShareService shareService;
 
+    @Resource
+    private VoteAuditService voteAuditService;
+
+    @Resource
+    private UserPointsService userPointsService;
+
     // ==================== 分页查询接口 ====================
 
     @Operation(summary = "分页查询投票", description = "根据条件分页查询投票列表")
@@ -88,7 +90,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         VoteResponseDTO voteDto = voteService.getVoteDTOById(id);
         if (voteDto == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
         DTO<VoteResponseDTO> dto = new DTO<>(200, "查询成功");
         dto.setT(voteDto);
@@ -102,7 +104,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         VoteResponseDTO vote = voteService.getVoteDTOById(id);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         // 查询投票选项
@@ -125,7 +127,7 @@ public class VoteController {
     public DTO<Vote> addVote(@Valid @RequestBody VoteSaveDTO saveDTO) throws BusinessException {
         Vote vote = voteService.addVote(saveDTO);
         if (vote == null) {
-            throw new BusinessException(500, "新增失败");
+            throw new BusinessException(ErrorCode.VOTE_CREATE_FAILED);
         }
         DTO<Vote> dto = new DTO<>(200, "新增成功");
         dto.setT(vote);
@@ -138,11 +140,11 @@ public class VoteController {
     @PutMapping
     public DTO<Vote> updateVote(@Valid @RequestBody VoteSaveDTO saveDTO) throws BusinessException {
         if (saveDTO.getId() == null) {
-            throw new BusinessException(400, "投票ID不能为空");
+            throw new BusinessException(ErrorCode.BAD_REQUEST);
         }
         Vote vote = voteService.updateVote(saveDTO);
         if (vote == null) {
-            throw new BusinessException(500, "修改失败");
+            throw new BusinessException(ErrorCode.VOTE_UPDATE_FAILED);
         }
         DTO<Vote> dto = new DTO<>(200, "修改成功");
         dto.setT(vote);
@@ -158,7 +160,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         boolean result = voteService.deleteVoteById(id);
         if (!result) {
-            throw new BusinessException(500, "删除失败");
+            throw new BusinessException(ErrorCode.VOTE_DELETE_FAILED);
         }
         return new DTO<>(200, "删除成功");
     }
@@ -168,7 +170,7 @@ public class VoteController {
     public DTO<Void> deleteVoteBatch(@RequestBody List<Long> ids) throws BusinessException {
         boolean result = voteService.deleteVoteBatch(ids);
         if (!result) {
-            throw new BusinessException(500, "批量删除失败");
+            throw new BusinessException(ErrorCode.VOTE_DELETE_FAILED);
         }
         return new DTO<>(200, "批量删除成功");
     }
@@ -193,36 +195,39 @@ public class VoteController {
 
         // 1. 验证验证码
         if (!captchaService.verifyCaptcha(captchaId, captchaCode)) {
-            throw new BusinessException(400, "验证码错误或已过期");
+            throw new BusinessException(ErrorCode.CAPTCHA_ERROR);
         }
 
         // 2. 检查投票是否存在
         Vote vote = voteService.getVoteById(voteId);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         // 3. 检查投票状态
         if (vote.getStatus() != 1) {
-            throw new BusinessException(400, "投票未开始或已结束");
+            throw new BusinessException(ErrorCode.VOTE_NOT_STARTED);
         }
 
         // 4. 检查截止时间
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         if (vote.getStartTime() != null && now.isBefore(vote.getStartTime())) {
-            throw new BusinessException(400, "投票尚未开始");
+            throw new BusinessException(ErrorCode.VOTE_NOT_STARTED);
         }
         if (vote.getEndTime() != null && now.isAfter(vote.getEndTime())) {
-            throw new BusinessException(400, "投票已截止");
+            throw new BusinessException(ErrorCode.VOTE_ENDED);
         }
 
         // 5. 执行投票
         boolean result = voteRecordService.vote(voteId, optionId, userId);
         if (!result) {
-            throw new BusinessException(500, "投票失败，可能已经投过票");
+            throw new BusinessException(ErrorCode.VOTE_ALREADY_VOTED);
         }
 
-        return new DTO<>(200, "投票成功");
+        // 6. 投票成功，奖励积分
+        userPointsService.addPoints(userId, 10, "vote", "参与投票奖励");
+
+        return new DTO<>(200, "投票成功，获得10积分");
     }
 
     @Operation(summary = "查询投票结果", description = "查询投票的统计结果")
@@ -233,7 +238,7 @@ public class VoteController {
         // 查询投票信息
         VoteResponseDTO vote = voteService.getVoteDTOById(id);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         // 查询投票选项（含票数）
@@ -278,9 +283,103 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         boolean result = voteService.endVote(id);
         if (!result) {
-            throw new BusinessException(500, "结束失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
         return new DTO<>(200, "结束成功");
+    }
+
+    // ==================== 投票历史统计 ====================
+
+    @Operation(summary = "用户投票历史", description = "获取当前用户的投票历史记录")
+    @GetMapping("/history")
+    public DTO<List<Map<String, Object>>> getVoteHistory(jakarta.servlet.http.HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("currentUserId");
+
+        // 查询用户的投票记录
+        List<VoteRecord> records = voteRecordService.getRecordsByVoteId(null); // 需要修改为按用户查询
+
+        List<Map<String, Object>> history = new java.util.ArrayList<>();
+        for (VoteRecord record : records) {
+            Vote vote = voteService.getVoteById(record.getVoteId());
+            if (vote != null) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("voteId", vote.getId());
+                item.put("voteTitle", vote.getTitle());
+                item.put("optionId", record.getOptionId());
+                item.put("voteTime", record.getCreateTime());
+                history.add(item);
+            }
+        }
+
+        DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
+        dto.setT(history);
+        return dto;
+    }
+
+    // ==================== 投票排行 ====================
+
+    @Operation(summary = "投票排行", description = "获取热门投票排行榜")
+    @GetMapping("/ranking")
+    public DTO<List<Map<String, Object>>> getVoteRanking(
+            @Parameter(description = "排行数量", example = "10")
+            @RequestParam(defaultValue = "10") Integer limit) {
+        // 获取所有投票
+        List<Vote> allVotes = voteService.getAllVotes();
+
+        // 统计每个投票的参与人数
+        List<Map<String, Object>> ranking = new java.util.ArrayList<>();
+        for (Vote vote : allVotes) {
+            Map<Long, Long> countMap = voteRecordService.countByOptionId(vote.getId());
+            long totalCount = countMap.values().stream().mapToLong(Long::longValue).sum();
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("voteId", vote.getId());
+            item.put("title", vote.getTitle());
+            item.put("totalVotes", totalCount);
+            item.put("status", vote.getStatus());
+            item.put("endTime", vote.getEndTime());
+            ranking.add(item);
+        }
+
+        // 按投票数排序
+        ranking.sort((a, b) -> Long.compare((Long) b.get("totalVotes"), (Long) a.get("totalVotes")));
+
+        // 限制数量
+        if (ranking.size() > limit) {
+            ranking = ranking.subList(0, limit);
+        }
+
+        DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
+        dto.setT(ranking);
+        return dto;
+    }
+
+    // ==================== 普通用户发布投票（需审核） ====================
+
+    @Operation(summary = "普通用户发布投票", description = "普通用户发布投票（需要管理员审核）")
+    @PostMapping("/submit")
+    public DTO<Vote> submitVote(
+            @Valid @RequestBody VoteSaveDTO saveDTO,
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+        Long userId = (Long) request.getAttribute("currentUserId");
+
+        // 创建投票
+        Vote vote = voteService.addVote(saveDTO);
+        if (vote == null) {
+            throw new BusinessException(ErrorCode.VOTE_CREATE_FAILED);
+        }
+
+        // 设置为待审核状态
+        vote.setAuditStatus(0); // 待审核
+        vote.setCreatorId(userId);
+        voteService.updateById(vote);
+
+        // 创建审核记录
+        voteAuditService.createAudit(vote.getId());
+
+        DTO<Vote> dto = new DTO<>(200, "提交成功，等待管理员审核");
+        dto.setT(vote);
+        return dto;
     }
 
     // ==================== 随机数据生成接口 ====================
@@ -305,7 +404,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         VoteOption option = voteOptionService.getOptionById(id);
         if (option == null) {
-            throw new BusinessException(404, "选项不存在");
+            throw new BusinessException(ErrorCode.OPTION_NOT_FOUND);
         }
         DTO<VoteOption> dto = new DTO<>(200, "查询成功");
         dto.setT(option);
@@ -327,12 +426,12 @@ public class VoteController {
     @PostMapping("/option")
     public DTO<VoteOption> addOption(@RequestBody VoteOption option) throws BusinessException {
         if (option.getVoteId() == null) {
-            throw new BusinessException(400, "投票ID不能为空");
+            throw new BusinessException(ErrorCode.BAD_REQUEST);
         }
         option.setCreateTime(java.time.LocalDateTime.now());
         boolean result = voteOptionService.save(option);
         if (!result) {
-            throw new BusinessException(500, "新增失败");
+            throw new BusinessException(ErrorCode.VOTE_CREATE_FAILED);
         }
         DTO<VoteOption> dto = new DTO<>(200, "新增成功");
         dto.setT(option);
@@ -343,11 +442,11 @@ public class VoteController {
     @PutMapping("/option")
     public DTO<VoteOption> updateOption(@RequestBody VoteOption option) throws BusinessException {
         if (option.getId() == null) {
-            throw new BusinessException(400, "选项ID不能为空");
+            throw new BusinessException(ErrorCode.BAD_REQUEST);
         }
         boolean result = voteOptionService.updateOption(option);
         if (!result) {
-            throw new BusinessException(500, "修改失败");
+            throw new BusinessException(ErrorCode.VOTE_UPDATE_FAILED);
         }
         VoteOption updated = voteOptionService.getOptionById(option.getId());
         DTO<VoteOption> dto = new DTO<>(200, "修改成功");
@@ -362,7 +461,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         boolean result = voteOptionService.deleteOptionById(id);
         if (!result) {
-            throw new BusinessException(500, "删除失败");
+            throw new BusinessException(ErrorCode.VOTE_DELETE_FAILED);
         }
         return new DTO<>(200, "删除成功");
     }
@@ -387,7 +486,7 @@ public class VoteController {
             @PathVariable Long id) throws BusinessException {
         boolean result = voteRecordService.deleteRecordById(id);
         if (!result) {
-            throw new BusinessException(500, "删除失败");
+            throw new BusinessException(ErrorCode.VOTE_DELETE_FAILED);
         }
         return new DTO<>(200, "删除成功");
     }
@@ -399,7 +498,7 @@ public class VoteController {
             @PathVariable Long voteId) throws BusinessException {
         boolean result = voteRecordService.deleteByVoteId(voteId);
         if (!result) {
-            throw new BusinessException(500, "清空失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR);
         }
         return new DTO<>(200, "清空成功");
     }
@@ -415,7 +514,7 @@ public class VoteController {
         // 查询投票信息
         Vote vote = voteService.getVoteById(id);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         // 查询投票选项（含票数）
@@ -437,7 +536,7 @@ public class VoteController {
             response.getOutputStream().write(excelData);
             response.getOutputStream().flush();
         } catch (Exception e) {
-            throw new BusinessException(500, "导出失败");
+            throw new BusinessException(ErrorCode.EXPORT_FAILED);
         }
     }
 
@@ -452,7 +551,7 @@ public class VoteController {
             @RequestParam String baseUrl) throws BusinessException {
         Vote vote = voteService.getVoteById(id);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         String shareLink = shareService.generateShareLink(id, baseUrl);
@@ -475,7 +574,7 @@ public class VoteController {
             jakarta.servlet.http.HttpServletResponse response) throws BusinessException {
         Vote vote = voteService.getVoteById(id);
         if (vote == null) {
-            throw new BusinessException(404, "投票不存在");
+            throw new BusinessException(ErrorCode.VOTE_NOT_FOUND);
         }
 
         String shareLink = shareService.generateShareLink(id, baseUrl);
@@ -488,7 +587,7 @@ public class VoteController {
             response.getOutputStream().write(qrCodeData);
             response.getOutputStream().flush();
         } catch (Exception e) {
-            throw new BusinessException(500, "生成二维码失败");
+            throw new BusinessException(ErrorCode.QRCODE_GENERATE_FAILED);
         }
     }
 }

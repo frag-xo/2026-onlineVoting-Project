@@ -66,11 +66,18 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         }
 
         Account account = baseMapper.selectByUnameAndPwd(uname, pwd);
-        if (account != null) {
-            log.info("登录成功: {} (ID: {})", uname, account.getId());
-        } else {
+        if (account == null) {
             log.warn("登录失败：用户名或密码错误 - {}", uname);
+            return null;
         }
+
+        // 检查账号是否被禁用（deleted=1表示禁用）
+        if (account.getDeleted() != null && account.getDeleted() == 1) {
+            log.warn("登录失败：账号已被禁用 - {}", uname);
+            return null;
+        }
+
+        log.info("登录成功: {} (ID: {})", uname, account.getId());
         return account;
     }
 

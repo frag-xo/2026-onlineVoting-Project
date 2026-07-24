@@ -22,7 +22,7 @@ public interface AccountMapper extends BaseMapper<Account> {
     Account selectByUname(@Param("uname") String uname);
 
     /**
-     * 根据用户名和密码查询账号（登录）
+     * 根据用户名和密码查询账号（登录，只查未删除的）
      */
     @Select("SELECT * FROM account WHERE uname = #{uname} AND pwd = #{pwd} AND deleted = 0")
     Account selectByUnameAndPwd(@Param("uname") String uname, @Param("pwd") String pwd);

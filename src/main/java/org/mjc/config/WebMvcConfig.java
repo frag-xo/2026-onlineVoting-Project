@@ -33,9 +33,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**")  // 拦截所有/api/开头的请求
                 .excludePathPatterns(         // 排除不需要登录的接口
                         "/api/account/login",      // 登录
-                        "/api/account/register",   // 注册
-                        "/api/account/init/random", // 生成随机用户（测试用）
-                        "/api/vote/init/random"     // 生成随机投票（测试用）
+                        "/api/account/register"    // 注册
                 );
     }
 }
