@@ -31,20 +31,14 @@
               </el-upload>
             </div>
 
-            <!-- 昵称 -->
             <div class="username-wrapper">
               <h3>{{ displayName }}</h3>
-              <el-button
-                type="primary"
-                link
-                size="small"
-                @click="showEditNameDialog"
-                class="edit-name-btn"
-              >
+              <el-button type="primary" link size="small" @click="showEditNameDialog" class="edit-name-btn">
                 <el-icon><Edit /></el-icon> 修改
               </el-button>
             </div>
             <p class="role">{{ isAdmin ? '管理员' : '普通用户' }}</p>
+            <p class="level-tag">{{ levelInfo.icon }} {{ levelInfo.name }}</p>
 
             <div class="stats">
               <div>
@@ -59,6 +53,12 @@
                 <span class="num">{{ stats.points }}</span>
                 <span class="label">积分</span>
               </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <el-button size="small" type="warning" plain @click="showRulesDialog = true" style="width: 100%;">
+                📖 积分规则
+              </el-button>
             </div>
           </div>
         </el-card>
@@ -101,7 +101,7 @@
             </el-tab-pane>
 
             <el-tab-pane label="我发布的投票" name="myPublish">
-              <el-table :data="myPublish" stripe v-loading="loading">
+              <el-table :data="myPublish" stripe v-loading="publishLoading">
                 <el-table-column prop="title" label="投票标题" />
                 <el-table-column prop="auditStatus" label="审核状态" width="120">
                   <template #default="{ row }">
@@ -137,9 +137,7 @@
                 <el-table-column prop="creatorName" label="发布人" width="120" />
                 <el-table-column prop="createTime" label="提交时间" width="180" />
                 <el-table-column prop="optionsCount" label="选项数" width="80">
-                  <template #default="{ row }">
-                    {{ row.optionsCount || 0 }}
-                  </template>
+                  <template #default="{ row }">{{ row.optionsCount || 0 }}</template>
                 </el-table-column>
                 <el-table-column label="操作" width="200">
                   <template #default="{ row }">
@@ -194,6 +192,31 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <!-- 积分规则弹窗 -->
+    <el-dialog v-model="showRulesDialog" title="📖 积分规则" width="580px">
+      <div class="rules-container">
+        <h4>🎯 获取积分</h4>
+        <el-table :data="earnRules" border size="small" style="margin-bottom:16px;">
+          <el-table-column prop="action" label="行为" />
+          <el-table-column prop="points" label="积分" width="80" align="center" />
+          <el-table-column prop="limit" label="每日上限" width="120" align="center" />
+        </el-table>
+        <h4>💎 消耗积分</h4>
+        <el-table :data="spendRules" border size="small" style="margin-bottom:16px;">
+          <el-table-column prop="action" label="行为" />
+          <el-table-column prop="points" label="积分" width="80" align="center" />
+          <el-table-column prop="note" label="说明" />
+        </el-table>
+        <h4>🏅 等级体系</h4>
+        <el-table :data="levelRules" border size="small">
+          <el-table-column prop="level" label="等级" width="80" align="center" />
+          <el-table-column prop="icon" label="图标" width="60" align="center" />
+          <el-table-column prop="name" label="称号" />
+          <el-table-column prop="required" label="所需积分" width="120" align="center" />
+        </el-table>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -211,12 +234,14 @@ import {
   updateUsername,
   uploadAvatar,
   unfavoriteVote,
-  favoriteVote
+  getVoteList,
+  getVoteDetail
 } from '@/api/vote'
 
 const router = useRouter()
 const loading = ref(false)
 const favLoading = ref(false)
+const publishLoading = ref(false)
 const auditLoading = ref(false)
 const activeTab = ref('records')
 
@@ -227,32 +252,76 @@ const avatarUrl = ref(localStorage.getItem('avatar') || '')
 
 const displayName = computed(() => username.value)
 
-// 统计数据
+// 积分规则
+const showRulesDialog = ref(false)
+
+const levelInfo = computed(() => {
+  const points = stats.value.points || 0
+  const levels = [
+    { level: 1, icon: '🍃', name: '初来乍到', required: 0 },
+    { level: 2, icon: '🌱', name: '热心市民', required: 50 },
+    { level: 3, icon: '🌿', name: '活跃分子', required: 100 },
+    { level: 4, icon: '🌳', name: '投票达人', required: 200 },
+    { level: 5, icon: '🌲', name: '意见领袖', required: 500 },
+    { level: 6, icon: '👑', name: '投票之王', required: 1000 }
+  ]
+  let current = levels[0]
+  for (const l of levels) {
+    if (points >= l.required) current = l
+  }
+  return current
+})
+
+const earnRules = [
+  { action: '注册账号', points: '+20', limit: '仅一次' },
+  { action: '参与投票', points: '+5', limit: '20次' },
+  { action: '发表评论', points: '+2', limit: '10次' },
+  { action: '评论被点赞', points: '+1', limit: '无上限' },
+  { action: '收藏投票', points: '+3', limit: '10次' },
+  { action: '发布的投票被投票', points: '+1', limit: '无上限' },
+  { action: '每日登录', points: '+1', limit: '1次/天' },
+  { action: '投票被管理员推荐', points: '+50', limit: '无上限' }
+]
+
+const spendRules = [
+  { action: '发布投票（普通用户）', points: '-10', note: '管理员发布免费' },
+  { action: '置顶自己的投票（24h）', points: '-50', note: '投票置顶展示' },
+  { action: '发布匿名投票', points: '-5', note: '匿名发布' }
+]
+
+const levelRules = [
+  { level: 'Lv.1', icon: '🍃', name: '初来乍到', required: 0 },
+  { level: 'Lv.2', icon: '🌱', name: '热心市民', required: 50 },
+  { level: 'Lv.3', icon: '🌿', name: '活跃分子', required: 100 },
+  { level: 'Lv.4', icon: '🌳', name: '投票达人', required: 200 },
+  { level: 'Lv.5', icon: '🌲', name: '意见领袖', required: 500 },
+  { level: 'Lv.6', icon: '👑', name: '投票之王', required: 1000 }
+]
+
 const stats = ref({
   totalVotes: 0,
   totalFav: 0,
   points: 0
 })
 
-// 我的投票记录
 const myVotes = ref<any[]>([])
-
-// 我的收藏
 const favorites = ref<any[]>([])
-
-// 我发布的投票
 const myPublish = ref<any[]>([])
-
-// 待审核投票
 const pendingAuditList = ref<any[]>([])
 
-// ============================================================
-// 加载数据
-// ============================================================
+// -------------------- 加载数据 --------------------
 const loadHistory = async () => {
   try {
     const data = await getVoteHistory()
-    myVotes.value = data || []
+    // 后端返回: [{ voteId, voteTitle, optionId, voteTime }]
+    myVotes.value = data.map((item: any) => ({
+      id: item.voteId,
+      title: item.voteTitle || '未知投票',
+      choice: `选项 ${item.optionId}`,
+      result: '已参与',
+      createTime: item.voteTime
+    }))
+    stats.value.totalVotes = myVotes.value.length
   } catch (error: any) {
     console.warn('加载投票历史失败', error.message)
   }
@@ -261,8 +330,21 @@ const loadHistory = async () => {
 const loadFavorites = async () => {
   favLoading.value = true
   try {
-    const data = await getFavorites()
-    favorites.value = data || []
+    const ids = await getFavorites() // 返回 [1,2,3]
+    if (!ids || ids.length === 0) {
+      favorites.value = []
+      stats.value.totalFav = 0
+      return
+    }
+    // 批量获取投票详情
+    const promises = ids.map((id: number) => getVoteDetail(id))
+    const results = await Promise.all(promises)
+    favorites.value = results.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      statusText: item.statusText || (item.status === 1 ? '进行中' : '已结束'),
+      endTime: item.endTime
+    }))
     stats.value.totalFav = favorites.value.length
   } catch (error: any) {
     ElMessage.error(error.message || '加载收藏失败')
@@ -280,6 +362,35 @@ const loadPoints = async () => {
   }
 }
 
+const loadMyPublish = async () => {
+  publishLoading.value = true
+  try {
+    // 1. 先获取投票列表（只获取 ID 和标题）
+    const data = await getVoteList({
+      pageNum: 1,
+      pageSize: 100,
+      creatorId: userId.value
+    })
+    const records = data.records || data || []
+    
+    // 2. 对每个投票调用 getVoteDetail 获取完整信息（含 auditStatus）
+    const detailPromises = records.map((item: any) => getVoteDetail(item.id))
+    const details = await Promise.all(detailPromises)
+    
+    myPublish.value = details.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      auditStatus: item.auditStatus === 0 ? '待审核' : item.auditStatus === 1 ? '已通过' : '已拒绝',
+      statusText: item.statusText || (item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始'),
+      createTime: item.createTime
+    }))
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载我发布的投票失败')
+  } finally {
+    publishLoading.value = false
+  }
+}
+
 const loadPendingAudits = async () => {
   if (!isAdmin.value) return
   auditLoading.value = true
@@ -293,9 +404,7 @@ const loadPendingAudits = async () => {
   }
 }
 
-// ============================================================
-// 修改昵称
-// ============================================================
+// -------------------- 修改昵称 --------------------
 const editNameDialogVisible = ref(false)
 const nameSaving = ref(false)
 const newName = ref('')
@@ -325,9 +434,7 @@ const confirmEditName = async () => {
   }
 }
 
-// ============================================================
-// 换头像
-// ============================================================
+// -------------------- 换头像 --------------------
 const avatarPreviewVisible = ref(false)
 const tempAvatarUrl = ref('')
 const avatarSaving = ref(false)
@@ -358,7 +465,6 @@ const handleAvatarConfirm = (file: any) => {
 const saveAvatar = async () => {
   avatarSaving.value = true
   try {
-    // 获取上传的文件
     const input = document.querySelector('.avatar-upload input[type="file"]') as HTMLInputElement
     const file = input?.files?.[0]
     if (!file) {
@@ -379,9 +485,7 @@ const saveAvatar = async () => {
   }
 }
 
-// ============================================================
-// 取消收藏
-// ============================================================
+// -------------------- 取消收藏 --------------------
 const unfav = async (id: number) => {
   try {
     await unfavoriteVote(id)
@@ -393,9 +497,7 @@ const unfav = async (id: number) => {
   }
 }
 
-// ============================================================
-// 审核操作
-// ============================================================
+// -------------------- 审核操作 --------------------
 const approveVote = async (id: number) => {
   try {
     await ElMessageBox.confirm('确认通过该投票吗？', '审核确认', {
@@ -406,6 +508,7 @@ const approveVote = async (id: number) => {
     await auditVote(id, 1)
     ElMessage.success('审核通过，投票已发布')
     await loadPendingAudits()
+    await loadMyPublish()
   } catch {}
 }
 
@@ -419,24 +522,21 @@ const rejectVote = async (id: number) => {
     await auditVote(id, 2)
     ElMessage.warning('已拒绝该投票')
     await loadPendingAudits()
+    await loadMyPublish()
   } catch {}
 }
 
-// ============================================================
-// 跳转方法
-// ============================================================
+// -------------------- 跳转 --------------------
 const viewDetail = (id: number) => router.push(`/detail/${id}`)
 const viewResult = (id: number) => router.push(`/result/${id}`)
 
-// ============================================================
-// 生命周期
-// ============================================================
+// -------------------- 生命周期 --------------------
 onMounted(async () => {
-  // 并行加载所有数据
   await Promise.all([
     loadHistory(),
     loadFavorites(),
     loadPoints(),
+    loadMyPublish(),
     loadPendingAudits()
   ])
 
@@ -501,13 +601,14 @@ onMounted(async () => {
 .username-wrapper h3 { margin: 0; font-size: 20px; color: #303133; }
 .edit-name-btn { font-size: 13px; padding: 0 4px; }
 
-.role { color: #909399; font-size: 14px; margin: 4px 0 16px 0; }
+.role { color: #909399; font-size: 14px; margin: 2px 0 0; }
+.level-tag { color: #e6a23c; font-size: 15px; margin: 2px 0 12px; font-weight: 500; }
 
 .stats {
   display: flex;
   justify-content: space-around;
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #ebeef5;
 }
 .stats .num { display: block; font-size: 24px; font-weight: bold; color: #409eff; }
@@ -524,4 +625,13 @@ onMounted(async () => {
 .avatar-preview-area { text-align: center; padding: 20px 0; }
 .preview-avatar { display: block; margin: 0 auto; }
 .avatar-upload-btn { display: inline-block; margin-top: 16px; }
+
+/* 积分规则弹窗样式 */
+.rules-container h4 {
+  margin: 16px 0 8px;
+  color: #303133;
+}
+.rules-container h4:first-child {
+  margin-top: 0;
+}
 </style>

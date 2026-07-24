@@ -10,15 +10,17 @@
             </template>
           </el-table-column>
           <el-table-column prop="title" label="投票标题" />
-          <el-table-column prop="totalVoters" label="参与人数" width="120" sortable />
+          <el-table-column prop="totalVotes" label="参与人数" width="120" sortable />
           <el-table-column prop="statusText" label="状态" width="100">
             <template #default="{ row }">
-              <el-tag :type="row.statusText === '进行中' ? 'success' : 'info'">{{ row.statusText }}</el-tag>
+              <el-tag :type="row.statusText === '进行中' ? 'success' : row.statusText === '已结束' ? 'info' : 'warning'">
+                {{ row.statusText }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作" width="120">
             <template #default="{ row }">
-              <el-button size="small" @click="goDetail(row.id)">参与</el-button>
+              <el-button size="small" @click="goDetail(row.voteId || row.id)">参与</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -56,7 +58,16 @@ const loadHotRanking = async () => {
   loading.value = true
   try {
     const data = await getVoteRanking(10)
-    hotList.value = data || []
+    // 后端返回格式：{ voteId, title, totalVotes, status, endTime }
+    hotList.value = (data || []).map((item: any) => ({
+      voteId: item.voteId || item.id,
+      id: item.voteId || item.id,
+      title: item.title,
+      totalVotes: item.totalVotes || 0,
+      status: item.status,
+      statusText: item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始',
+      endTime: item.endTime
+    }))
   } catch (error: any) {
     ElMessage.error(error.message || '加载排行失败')
   } finally {
@@ -80,6 +91,10 @@ const loadNewest = async () => {
 }
 
 const goDetail = (id: number) => {
+  if (!id) {
+    ElMessage.warning('投票ID无效')
+    return
+  }
   router.push(`/detail/${id}`)
 }
 

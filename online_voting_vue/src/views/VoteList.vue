@@ -120,19 +120,25 @@ const filterTabs = [
 const activeCount = computed(() => voteList.value.filter(v => v.status === '进行中').length)
 const endedCount = computed(() => voteList.value.filter(v => v.status === '已结束').length)
 
+// ✅ 接口调用：getVoteList 是 POST 请求，参数在 body 中
 const loadVotes = async () => {
   loading.value = true
   try {
     const [orderBy, orderDirection] = sortBy.value.split('-')
     const params: any = {
       pageNum: 1,
-      pageSize: 100,
-      orderBy,
-      orderDirection
+      pageSize: 100
     }
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
     }
+    if (orderBy) {
+      params.orderBy = orderBy
+    }
+    if (orderDirection) {
+      params.orderDirection = orderDirection
+    }
+
     const data = await getVoteList(params)
     const records = data.records || data || []
     voteList.value = records.map((item: any) => ({

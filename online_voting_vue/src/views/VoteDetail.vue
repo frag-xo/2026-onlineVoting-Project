@@ -264,20 +264,23 @@ const submitSurvey = () => {
   surveyScore.value = 0
 }
 
-// 加载详情
+// ✅ 关键修复：loadDetail 从 data.vote 和 data.options 正确取值
 const loadDetail = async () => {
   loading.value = true
   try {
     const data = await getVoteDetail(voteId)
+    // getVoteDetail 返回 { vote: {...}, options: [{id, optionText, count}] }
+    const voteInfo = data.vote || data
+    const options = data.options || []
     vote.value = {
-      id: data.id,
-      title: data.title,
-      deadline: data.endTime,
-      isExpired: data.status === 2 || data.isEnded || false,
-      totalVotes: data.totalVoters || 0,
-      options: (data.options || []).map((opt: any) => ({
+      id: voteInfo.id || 0,
+      title: voteInfo.title || '',
+      deadline: voteInfo.endTime || '',
+      isExpired: voteInfo.status === 2 || voteInfo.isEnded || false,
+      totalVotes: voteInfo.totalVoters || 0,
+      options: options.map((opt: any) => ({
         optionId: opt.id,
-        text: opt.optionText
+        text: opt.optionText || opt.text
       }))
     }
     updateCountdown()
@@ -288,12 +291,12 @@ const loadDetail = async () => {
   }
 }
 
-// 刷新验证码
+// ✅ 关键修复：验证码字段名从 data.image 读取
 const refreshCaptcha = async () => {
   try {
     const data = await getCaptcha()
     captchaId.value = data.captchaId
-    captchaImage.value = data.image
+    captchaImage.value = data.image || data.img
   } catch (error: any) {
     ElMessage.error(error.message || '获取验证码失败')
   }
