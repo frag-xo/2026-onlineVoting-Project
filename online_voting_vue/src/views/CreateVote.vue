@@ -34,9 +34,9 @@
           <el-button type="primary" size="small" @click="addOption">+ 添加选项</el-button>
         </el-form-item>
 
-        <el-form-item label="截止时间" prop="deadline">
+        <el-form-item label="截止时间" prop="endTime">
           <el-date-picker
-            v-model="form.deadline"
+            v-model="form.endTime"
             type="datetime"
             placeholder="选择截止时间"
             value-format="YYYY-MM-DD HH:mm:ss"
@@ -54,7 +54,7 @@
         </el-form-item>
 
         <el-form-item label="分组管理" prop="group">
-          <el-select v-model="form.group" placeholder="选择分组">
+          <el-select v-model="form.group" placeholder="选择分组" clearable>
             <el-option label="技术讨论" value="tech" />
             <el-option label="团队建设" value="team" />
             <el-option label="产品反馈" value="product" />
@@ -69,7 +69,6 @@
           <el-button @click="resetForm">重置</el-button>
         </el-form-item>
 
-        <!-- 普通用户提示 -->
         <el-alert
           v-if="!isAdmin"
           title="提交后需等待管理员审核，审核通过后投票才会发布到列表"
@@ -86,18 +85,18 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import { createVote, submitVoteForAudit } from '@/api/vote'
 
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
 
-// 判断当前用户是否为管理员
 const isAdmin = ref(localStorage.getItem('utype') === 'ROLE_1')
 
 const form = reactive({
   title: '',
   description: '',
   options: ['', ''],
-  deadline: '',
+  endTime: '',
   scheduledTime: '',
   group: ''
 })
@@ -112,7 +111,7 @@ const rules: FormRules = {
     },
     trigger: 'blur'
   }],
-  deadline: [{ required: true, message: '请选择截止时间', trigger: 'change' }]
+  endTime: [{ required: true, message: '请选择截止时间', trigger: 'change' }]
 }
 
 const addOption = () => form.options.push('')
@@ -122,7 +121,7 @@ const resetForm = () => {
   form.title = ''
   form.description = ''
   form.options = ['', '']
-  form.deadline = ''
+  form.endTime = ''
   form.scheduledTime = ''
   form.group = ''
   formRef.value?.resetFields()
@@ -135,17 +134,32 @@ const handleSubmit = async () => {
       submitting.value = true
       try {
         const filteredOptions = form.options.filter(item => item.trim() !== '')
-        // 模拟提交（后续对接后端接口）
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const userId = Number(localStorage.getItem('userId') || 0)
 
         if (isAdmin.value) {
+          // 管理员直接发布
+          await createVote({
+            title: form.title,
+            description: form.description || '',
+            status: 1,
+            endTime: form.endTime,
+            creatorId: userId,
+            options: filteredOptions
+          })
           ElMessage.success('投票发布成功！')
         } else {
+          // 普通用户提交审核
+          await submitVoteForAudit({
+            title: form.title,
+            description: form.description || '',
+            endTime: form.endTime,
+            options: filteredOptions
+          })
           ElMessage.success('投票已提交审核，请等待管理员审核')
         }
         resetForm()
-      } catch (error) {
-        ElMessage.error('提交失败')
+      } catch (error: any) {
+        ElMessage.error(error.message || '提交失败')
       } finally {
         submitting.value = false
       }

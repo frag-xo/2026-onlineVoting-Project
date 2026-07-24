@@ -41,6 +41,31 @@
             <template #title>数据看板</template>
           </el-menu-item>
         </el-menu>
+
+        <!-- 主题切换 -->
+        <div class="theme-switcher">
+          <el-dropdown trigger="click" @command="changeTheme">
+            <el-button size="small" circle style="color:#bfcbd9;background:transparent;border:1px solid #4a5a6a;">
+              <el-icon><Brush /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="default">🌊 默认蓝</el-dropdown-item>
+                <el-dropdown-item command="green">🌿 青绿</el-dropdown-item>
+                <el-dropdown-item command="orange">🌅 暖橙</el-dropdown-item>
+                <el-dropdown-item command="purple">🌙 紫韵</el-dropdown-item>
+                <el-dropdown-item command="custom">🎨 自定义</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <input
+            v-if="showCustomColor"
+            type="color"
+            @input="applyCustomColor($event.target.value)"
+            style="width:32px;height:32px;border:none;cursor:pointer;background:transparent;margin-left:6px;"
+          />
+        </div>
+
         <!-- 折叠按钮 -->
         <div class="collapse-btn" @click="toggleCollapse">
           <el-icon>
@@ -100,7 +125,8 @@ import {
   EditPen,
   UserFilled,
   DArrowLeft,
-  DArrowRight
+  DArrowRight,
+  Brush
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -111,6 +137,7 @@ const isLoggedIn = ref(false)
 const username = ref('')
 const isAdmin = ref(false)
 const currentPageTitle = ref('投票列表')
+const showCustomColor = ref(false)
 
 const pageTitles: Record<string, string> = {
   '/': '投票列表',
@@ -148,9 +175,45 @@ const checkLoginStatus = () => {
   }
 }
 
+// 主题切换
+const changeTheme = (command: string) => {
+  const root = document.documentElement
+  if (command === 'custom') {
+    showCustomColor.value = !showCustomColor.value
+    return
+  }
+  showCustomColor.value = false
+  const colors: Record<string, string> = {
+    default: '#409eff',
+    green: '#67c23a',
+    orange: '#e6a23c',
+    purple: '#8e44ad'
+  }
+  const primary = colors[command] || '#409eff'
+  root.style.setProperty('--el-color-primary', primary)
+  root.style.setProperty('--menu-active-color', primary)
+  localStorage.setItem('theme-primary', primary)
+}
+
+const applyCustomColor = (hex: string) => {
+  document.documentElement.style.setProperty('--el-color-primary', hex)
+  document.documentElement.style.setProperty('--menu-active-color', hex)
+  localStorage.setItem('theme-primary', hex)
+}
+
+// 恢复主题
+const restoreTheme = () => {
+  const saved = localStorage.getItem('theme-primary')
+  if (saved) {
+    document.documentElement.style.setProperty('--el-color-primary', saved)
+    document.documentElement.style.setProperty('--menu-active-color', saved)
+  }
+}
+
 onMounted(() => {
   checkLoginStatus()
   updatePageTitle()
+  restoreTheme()
 })
 
 watch(() => route.path, () => {
@@ -185,6 +248,7 @@ body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2
 html, #app { height: 100%; }
 .app-container { height: 100%; }
 
+/* ===== 侧边栏 ===== */
 .app-aside {
   background-color: #304156;
   transition: width 0.3s;
@@ -199,8 +263,29 @@ html, #app { height: 100%; }
   height: 60px; line-height: 60px; text-align: center; color: #fff; font-size: 18px;
   font-weight: bold; background-color: #2b3a4a; white-space: nowrap; overflow: hidden;
 }
-.app-menu { border-right: none; flex: 1; overflow-y: auto; }
+.app-menu {
+  border-right: none;
+  flex: 1;
+  overflow-y: auto;
+}
 .app-menu .el-menu-item { height: 50px; line-height: 50px; }
+.app-menu .el-menu-item.is-active {
+  background-color: var(--menu-active-color, #409eff) !important;
+  color: #fff !important;
+}
+.app-menu .el-menu-item.is-active .el-icon {
+  color: #fff !important;
+}
+
+/* 主题切换 */
+.theme-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  background-color: #2b3a4a;
+}
+
 .collapse-btn {
   height: 50px; line-height: 50px; text-align: center; color: #bfcbd9;
   cursor: pointer; background-color: #2b3a4a;
@@ -208,6 +293,7 @@ html, #app { height: 100%; }
 .collapse-btn:hover { background-color: #1f2d3d; }
 .collapse-btn .el-icon { font-size: 20px; }
 
+/* ===== 顶部栏 ===== */
 .app-header {
   background-color: #fff; box-shadow: 0 1px 4px rgba(0,21,41,0.08);
   display: flex; justify-content: space-between; align-items: center;
@@ -218,5 +304,57 @@ html, #app { height: 100%; }
 .header-btn { font-size: 14px; }
 .username { color: #303133; font-size: 14px; }
 .role-tag { font-size: 12px; color: #909399; background-color: #f4f4f5; padding: 2px 12px; border-radius: 12px; }
-.app-main { background-color: #f0f2f5; padding: 20px; overflow-y: auto; height: calc(100vh - 60px); }
+
+/* ===== 主内容区 ===== */
+.app-main {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== 通用组件增强 ===== */
+.el-card {
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease !important;
+  border-radius: 16px !important;
+}
+.el-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12) !important;
+}
+
+.el-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  border-radius: 10px !important;
+}
+.el-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+.el-button:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+.el-dialog,
+.el-menu {
+  border-radius: 16px !important;
+}
 </style>

@@ -46,10 +46,11 @@
     <div v-loading="loading" class="vote-grid">
       <template v-if="voteList.length > 0">
         <el-card
-          v-for="item in voteList"
+          v-for="(item, index) in voteList"
           :key="item.id"
           class="vote-card"
           shadow="hover"
+          :style="{ animationDelay: (index * 0.05) + 's' }"
         >
           <div class="card-header">
             <h3>{{ item.title }}</h3>
@@ -322,10 +323,23 @@ onMounted(() => {
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: default;
   background: #fff !important;
+  opacity: 0;
+  animation: fadeUp 0.6s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .vote-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) !important;
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.1) !important;
 }
 

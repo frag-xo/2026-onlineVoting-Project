@@ -1,6 +1,6 @@
 <template>
   <div class="detail-container">
-    <el-card v-loading="loading">
+    <el-card v-loading="loading" class="detail-card">
       <template #header>
         <div class="detail-header">
           <h2>{{ vote.title }}</h2>
@@ -40,6 +40,7 @@
             :key="opt.optionId"
             :label="opt.optionId"
             :disabled="vote.isExpired"
+            class="option-radio"
           >
             {{ opt.text }}
           </el-radio>
@@ -60,7 +61,7 @@
             <img
               :src="captchaImage"
               alt="验证码"
-              style="vertical-align: middle; cursor: pointer; height: 32px; border: 1px solid #dcdfe6; border-radius: 4px;"
+              class="captcha-img"
               @click="refreshCaptcha"
             />
             <span style="font-size:12px; color:#909399; margin-left:10px;">点击图片刷新</span>
@@ -82,7 +83,7 @@
     </el-card>
 
     <!-- 评论区 -->
-    <el-card style="margin-top:20px;">
+    <el-card style="margin-top:20px;" class="comment-card">
       <template #header>
         <span><strong>💬 评论 ({{ comments.length }})</strong></span>
       </template>
@@ -94,13 +95,13 @@
           maxlength="200"
           show-word-limit
         />
-        <el-button type="primary" @click="submitComment">发表</el-button>
+        <el-button type="primary" @click="submitComment" :loading="commentLoading">发表</el-button>
       </div>
-      <div class="comment-list">
+      <div class="comment-list" v-loading="commentLoading">
         <div v-for="item in comments" :key="item.id" class="comment-item">
-          <div class="comment-user">{{ item.user }}</div>
+          <div class="comment-user">{{ item.userName || item.user }}</div>
           <div class="comment-content">{{ item.content }}</div>
-          <div class="comment-time">{{ item.time }}</div>
+          <div class="comment-time">{{ item.createTime || item.time }}</div>
         </div>
         <el-empty v-if="!comments.length" description="暂无评论，快来发表你的看法吧！" />
       </div>
@@ -122,7 +123,16 @@
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getVoteDetail, submitVote, getCaptcha } from '@/api/vote'
+import {
+  getVoteDetail,
+  submitVote,
+  getCaptcha,
+  checkFavorited,
+  favoriteVote,
+  unfavoriteVote,
+  getComments,
+  addComment
+} from '@/api/vote'
 
 const router = useRouter()
 const route = useRoute()
@@ -147,9 +157,40 @@ const captchaForm = reactive({ code: '' })
 
 // 收藏
 const isFav = ref(false)
-const toggleFav = () => {
-  isFav.value = !isFav.value
-  ElMessage.success(isFav.value ? '已收藏' : '已取消收藏')
+const favLoading = ref(false)
+
+const toggleFav = async () => {
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  favLoading.value = true
+  try {
+    if (isFav.value) {
+      await unfavoriteVote(voteId)
+      isFav.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await favoriteVote(voteId)
+      isFav.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败')
+  } finally {
+    favLoading.value = false
+  }
+}
+
+// 检查收藏状态
+const checkFavStatus = async () => {
+  if (!userId) return
+  try {
+    const data = await checkFavorited(voteId)
+    isFav.value = data === true || data === 1
+  } catch (error: any) {
+    console.warn('检查收藏状态失败', error.message)
+  }
 }
 
 // 倒计时
@@ -172,24 +213,42 @@ const updateCountdown = () => {
 }
 
 // 评论
-const comments = ref([
-  { id: 1, user: 'testuser', content: '这个投票很有意义！', time: '2026-07-24 10:00' },
-  { id: 2, user: 'user1', content: '支持 Java！', time: '2026-07-24 10:30' }
-])
+const commentLoading = ref(false)
+const comments = ref<any[]>([])
 const newComment = ref('')
-const submitComment = () => {
+
+const loadComments = async () => {
+  commentLoading.value = true
+  try {
+    const data = await getComments(voteId)
+    comments.value = data || []
+  } catch (error: any) {
+    console.warn('加载评论失败', error.message)
+  } finally {
+    commentLoading.value = false
+  }
+}
+
+const submitComment = async () => {
   if (!newComment.value.trim()) {
     ElMessage.warning('请输入评论内容')
     return
   }
-  comments.value.push({
-    id: Date.now(),
-    user: localStorage.getItem('username') || '匿名',
-    content: newComment.value,
-    time: new Date().toLocaleString()
-  })
-  newComment.value = ''
-  ElMessage.success('评论发表成功')
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  commentLoading.value = true
+  try {
+    await addComment(voteId, newComment.value)
+    ElMessage.success('评论发表成功')
+    newComment.value = ''
+    await loadComments()
+  } catch (error: any) {
+    ElMessage.error(error.message || '发表评论失败')
+  } finally {
+    commentLoading.value = false
+  }
 }
 
 // 满意度调查
@@ -221,7 +280,6 @@ const loadDetail = async () => {
         text: opt.optionText
       }))
     }
-    // 更新倒计时
     updateCountdown()
   } catch (error: any) {
     ElMessage.error(error.message || '加载投票详情失败')
@@ -265,7 +323,6 @@ const handleSubmit = async () => {
       captchaCode: captchaForm.code
     })
     ElMessage.success('投票成功！')
-    // 显示满意度调查
     showSurvey.value = true
     router.push(`/result/${voteId}`)
   } catch (error: any) {
@@ -281,10 +338,11 @@ const goBack = () => {
   router.push('/')
 }
 
-// 生命周期
 onMounted(() => {
   loadDetail()
   refreshCaptcha()
+  checkFavStatus()
+  loadComments()
   timer = setInterval(updateCountdown, 10000)
 })
 
@@ -299,6 +357,7 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   padding: 20px;
 }
+.detail-card { background: #fff !important; }
 .detail-header {
   display: flex;
   justify-content: space-between;
@@ -311,35 +370,49 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   margin-bottom: 16px;
 }
-.countdown-num {
-  color: #e6a23c;
-  font-weight: bold;
-  font-size: 18px;
-}
+.countdown-num { color: #e6a23c; font-weight: bold; font-size: 18px; }
 .vote-meta {
   display: flex;
   gap: 30px;
   color: #606266;
   margin-bottom: 10px;
 }
-.options-area {
-  margin: 20px 0;
-}
-.options-area h3 {
-  margin-bottom: 15px;
-}
-.el-radio-group .el-radio {
+.options-area { margin: 20px 0; }
+.options-area h3 { margin-bottom: 15px; }
+.option-radio {
   display: block;
   margin-bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
-.captcha-area {
-  margin: 20px 0;
+.option-radio:hover {
+  transform: translateX(6px);
+  background: #f5f7fa;
+}
+.option-radio.is-checked {
+  background: var(--el-color-primary-light-9, #ecf5ff);
+  border-radius: 8px;
+}
+.captcha-area { margin: 20px 0; }
+.captcha-img {
+  vertical-align: middle;
+  cursor: pointer;
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.captcha-img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .submit-area {
   margin-top: 30px;
   display: flex;
   gap: 15px;
 }
+.comment-card { background: #fff !important; }
 .comment-input {
   display: flex;
   margin-bottom: 16px;
@@ -348,16 +421,7 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid #ebeef5;
   padding: 12px 0;
 }
-.comment-user {
-  font-weight: bold;
-  color: #303133;
-}
-.comment-content {
-  color: #606266;
-  margin: 4px 0;
-}
-.comment-time {
-  font-size: 12px;
-  color: #909399;
-}
+.comment-user { font-weight: bold; color: #303133; }
+.comment-content { color: #606266; margin: 4px 0; }
+.comment-time { font-size: 12px; color: #909399; }
 </style>

@@ -3,7 +3,7 @@
     <el-row :gutter="20">
       <!-- 左侧：用户信息 -->
       <el-col :span="6">
-        <el-card>
+        <el-card class="profile-card">
           <div class="user-info">
             <!-- 头像 -->
             <div class="avatar-wrapper">
@@ -19,7 +19,6 @@
                 <el-icon><Camera /></el-icon>
                 <span>换头像</span>
               </div>
-              <!-- 隐藏的文件上传 -->
               <el-upload
                 ref="uploadRef"
                 class="avatar-upload"
@@ -47,7 +46,6 @@
             </div>
             <p class="role">{{ isAdmin ? '管理员' : '普通用户' }}</p>
 
-            <!-- 统计 -->
             <div class="stats">
               <div>
                 <span class="num">{{ stats.totalVotes }}</span>
@@ -66,11 +64,10 @@
         </el-card>
       </el-col>
 
-      <!-- 右侧：Tab切换 -->
+      <!-- 右侧 -->
       <el-col :span="18">
-        <el-card>
+        <el-card class="profile-card">
           <el-tabs v-model="activeTab">
-            <!-- 我的投票记录 -->
             <el-tab-pane label="我的投票记录" name="records">
               <el-table :data="myVotes" stripe v-loading="loading">
                 <el-table-column prop="title" label="投票标题" />
@@ -85,16 +82,15 @@
               </el-table>
             </el-tab-pane>
 
-            <!-- 我的收藏 -->
             <el-tab-pane label="我的收藏" name="favorites">
-              <el-table :data="favorites" stripe v-loading="loading">
+              <el-table :data="favorites" stripe v-loading="favLoading">
                 <el-table-column prop="title" label="投票标题" />
-                <el-table-column prop="status" label="状态" width="100">
+                <el-table-column prop="statusText" label="状态" width="100">
                   <template #default="{ row }">
-                    <el-tag :type="row.status === '进行中' ? 'success' : 'info'">{{ row.status }}</el-tag>
+                    <el-tag :type="row.statusText === '进行中' ? 'success' : 'info'">{{ row.statusText }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="deadline" label="截止时间" width="180" />
+                <el-table-column prop="endTime" label="截止时间" width="180" />
                 <el-table-column label="操作" width="160">
                   <template #default="{ row }">
                     <el-button size="small" @click="viewDetail(row.id)">查看</el-button>
@@ -104,7 +100,6 @@
               </el-table>
             </el-tab-pane>
 
-            <!-- 我发布的投票 -->
             <el-tab-pane label="我发布的投票" name="myPublish">
               <el-table :data="myPublish" stripe v-loading="loading">
                 <el-table-column prop="title" label="投票标题" />
@@ -115,9 +110,9 @@
                     </el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="status" label="发布状态" width="120">
+                <el-table-column prop="statusText" label="发布状态" width="120">
                   <template #default="{ row }">
-                    <el-tag :type="row.status === '进行中' ? 'success' : 'info'">{{ row.status }}</el-tag>
+                    <el-tag :type="row.statusText === '进行中' ? 'success' : 'info'">{{ row.statusText }}</el-tag>
                   </template>
                 </el-table-column>
                 <el-table-column prop="createTime" label="提交时间" width="180" />
@@ -131,19 +126,19 @@
               </el-table>
             </el-tab-pane>
 
-            <!-- 审核投票（管理员） -->
             <el-tab-pane label="审核投票" name="audit" v-if="isAdmin">
               <div class="audit-header">
                 <span class="audit-info">待审核投票数：{{ pendingAuditList.length }}</span>
+                <el-button size="small" @click="loadPendingAudits" :loading="auditLoading">刷新</el-button>
               </div>
               <el-table :data="pendingAuditList" stripe v-loading="auditLoading">
                 <el-table-column prop="id" label="ID" width="80" />
                 <el-table-column prop="title" label="投票标题" />
                 <el-table-column prop="creatorName" label="发布人" width="120" />
                 <el-table-column prop="createTime" label="提交时间" width="180" />
-                <el-table-column prop="options" label="选项数" width="80">
+                <el-table-column prop="optionsCount" label="选项数" width="80">
                   <template #default="{ row }">
-                    {{ row.options?.length || 0 }}
+                    {{ row.optionsCount || 0 }}
                   </template>
                 </el-table-column>
                 <el-table-column label="操作" width="200">
@@ -161,7 +156,7 @@
       </el-col>
     </el-row>
 
-    <!-- ✅ 修改昵称对话框 -->
+    <!-- 修改昵称对话框 -->
     <el-dialog v-model="editNameDialogVisible" title="修改昵称" width="400px">
       <el-form>
         <el-form-item label="新昵称">
@@ -174,7 +169,7 @@
       </template>
     </el-dialog>
 
-    <!-- ✅ 头像预览对话框 -->
+    <!-- 头像预览对话框 -->
     <el-dialog v-model="avatarPreviewVisible" title="更换头像" width="400px">
       <div class="avatar-preview-area">
         <el-avatar :size="120" :src="tempAvatarUrl" class="preview-avatar" />
@@ -203,25 +198,100 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed,onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Camera, Edit } from '@element-plus/icons-vue'
+import {
+  getVoteHistory,
+  getFavorites,
+  getMyPoints,
+  getPendingAudits,
+  auditVote,
+  updateUsername,
+  uploadAvatar,
+  unfavoriteVote,
+  favoriteVote
+} from '@/api/vote'
 
 const router = useRouter()
 const loading = ref(false)
+const favLoading = ref(false)
 const auditLoading = ref(false)
 const activeTab = ref('records')
 
-// ============================================================
-// 用户信息（响应式）
-// ============================================================
 const userId = ref(Number(localStorage.getItem('userId') || 0))
 const username = ref(localStorage.getItem('username') || '用户')
 const isAdmin = ref(localStorage.getItem('utype') === 'ROLE_1')
 const avatarUrl = ref(localStorage.getItem('avatar') || '')
 
 const displayName = computed(() => username.value)
+
+// 统计数据
+const stats = ref({
+  totalVotes: 0,
+  totalFav: 0,
+  points: 0
+})
+
+// 我的投票记录
+const myVotes = ref<any[]>([])
+
+// 我的收藏
+const favorites = ref<any[]>([])
+
+// 我发布的投票
+const myPublish = ref<any[]>([])
+
+// 待审核投票
+const pendingAuditList = ref<any[]>([])
+
+// ============================================================
+// 加载数据
+// ============================================================
+const loadHistory = async () => {
+  try {
+    const data = await getVoteHistory()
+    myVotes.value = data || []
+  } catch (error: any) {
+    console.warn('加载投票历史失败', error.message)
+  }
+}
+
+const loadFavorites = async () => {
+  favLoading.value = true
+  try {
+    const data = await getFavorites()
+    favorites.value = data || []
+    stats.value.totalFav = favorites.value.length
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载收藏失败')
+  } finally {
+    favLoading.value = false
+  }
+}
+
+const loadPoints = async () => {
+  try {
+    const data = await getMyPoints()
+    stats.value.points = data.points || 0
+  } catch (error: any) {
+    console.warn('加载积分失败', error.message)
+  }
+}
+
+const loadPendingAudits = async () => {
+  if (!isAdmin.value) return
+  auditLoading.value = true
+  try {
+    const data = await getPendingAudits()
+    pendingAuditList.value = data || []
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载待审核列表失败')
+  } finally {
+    auditLoading.value = false
+  }
+}
 
 // ============================================================
 // 修改昵称
@@ -235,22 +305,24 @@ const showEditNameDialog = () => {
   editNameDialogVisible.value = true
 }
 
-const confirmEditName = () => {
+const confirmEditName = async () => {
   if (!newName.value.trim()) {
     ElMessage.warning('昵称不能为空')
     return
   }
   nameSaving.value = true
-  // 模拟保存（后续对接后端接口）
-  setTimeout(() => {
+  try {
+    await updateUsername(newName.value.trim())
     username.value = newName.value.trim()
     localStorage.setItem('username', username.value)
-    // 同步更新 App.vue 中显示的用户名
     window.dispatchEvent(new Event('storage'))
     editNameDialogVisible.value = false
     ElMessage.success('昵称修改成功！')
+  } catch (error: any) {
+    ElMessage.error(error.message || '修改失败')
+  } finally {
     nameSaving.value = false
-  }, 500)
+  }
 }
 
 // ============================================================
@@ -262,7 +334,6 @@ const avatarSaving = ref(false)
 const uploadRef = ref()
 
 const triggerUpload = () => {
-  // 触发文件选择
   const input = document.querySelector('.avatar-upload input[type="file"]') as HTMLInputElement
   if (input) input.click()
 }
@@ -284,92 +355,43 @@ const handleAvatarConfirm = (file: any) => {
   reader.readAsDataURL(file.raw)
 }
 
-const saveAvatar = () => {
+const saveAvatar = async () => {
   avatarSaving.value = true
-  // 模拟保存（后续对接后端接口）
-  setTimeout(() => {
-    avatarUrl.value = tempAvatarUrl.value
-    localStorage.setItem('avatar', avatarUrl.value)
+  try {
+    // 获取上传的文件
+    const input = document.querySelector('.avatar-upload input[type="file"]') as HTMLInputElement
+    const file = input?.files?.[0]
+    if (!file) {
+      ElMessage.warning('请先选择图片')
+      avatarSaving.value = false
+      return
+    }
+    const data = await uploadAvatar(file)
+    const avatarUrlStr = data.avatar || data.url || data
+    avatarUrl.value = avatarUrlStr
+    localStorage.setItem('avatar', avatarUrlStr)
     avatarPreviewVisible.value = false
     ElMessage.success('头像更换成功！')
+  } catch (error: any) {
+    ElMessage.error(error.message || '上传失败')
+  } finally {
     avatarSaving.value = false
-  }, 500)
+  }
 }
 
 // ============================================================
-// 统计数据
+// 取消收藏
 // ============================================================
-const stats = ref({
-  totalVotes: 12,
-  totalFav: 5,
-  points: 168
-})
-
-// ============================================================
-// 我的投票记录（模拟数据）
-// ============================================================
-const myVotes = ref([
-  { id: 1, title: '年度最受欢迎编程语言', choice: 'Java', result: 'Java (39%)', createTime: '2026-07-23 14:30' },
-  { id: 2, title: '最佳前端框架评选', choice: 'Vue', result: 'React (45%)', createTime: '2026-07-22 10:20' }
-])
-
-// ============================================================
-// 我的收藏（模拟数据）
-// ============================================================
-const favorites = ref([
-  { id: 3, title: '最喜欢的数据库', status: '进行中', deadline: '2026-08-10 23:59' },
-  { id: 4, title: '年度最佳电影', status: '已结束', deadline: '2026-07-20 23:59' }
-])
-
-// ============================================================
-// 我发布的投票（模拟数据）
-// ============================================================
-const myPublish = ref([
-  {
-    id: 5,
-    title: '团队建设活动方案投票',
-    auditStatus: '待审核',
-    status: '未开始',
-    createTime: '2026-07-24 09:00',
-    options: ['方案A', '方案B', '方案C']
-  },
-  {
-    id: 6,
-    title: '下季度技术选型',
-    auditStatus: '已通过',
-    status: '进行中',
-    createTime: '2026-07-22 16:30',
-    options: ['React', 'Vue', 'Angular']
-  },
-  {
-    id: 9,
-    title: '年会节目征集',
-    auditStatus: '已拒绝',
-    status: '未开始',
-    createTime: '2026-07-21 11:00',
-    options: ['唱歌', '跳舞', '小品']
+const unfav = async (id: number) => {
+  try {
+    await unfavoriteVote(id)
+    favorites.value = favorites.value.filter(item => item.id !== id)
+    stats.value.totalFav = favorites.value.length
+    ElMessage.success('已取消收藏')
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败')
   }
-])
-
-// ============================================================
-// 待审核投票（管理员）
-// ============================================================
-const pendingAuditList = ref([
-  {
-    id: 10,
-    title: '团队午餐吃什么',
-    creatorName: 'user1',
-    createTime: '2026-07-24 08:30',
-    options: ['火锅', '炒菜', '西餐']
-  },
-  {
-    id: 11,
-    title: '周末团建活动投票',
-    creatorName: 'user2',
-    createTime: '2026-07-23 20:00',
-    options: ['爬山', '露营', '密室逃脱']
-  }
-])
+}
 
 // ============================================================
 // 审核操作
@@ -381,20 +403,9 @@ const approveVote = async (id: number) => {
       cancelButtonText: '取消',
       type: 'info'
     })
-    const index = pendingAuditList.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      const approved = pendingAuditList.value[index]
-      pendingAuditList.value.splice(index, 1)
-      myPublish.value.unshift({
-        id: approved.id,
-        title: approved.title,
-        auditStatus: '已通过',
-        status: '进行中',
-        createTime: new Date().toLocaleString(),
-        options: approved.options || []
-      })
-      ElMessage.success(`投票「${approved.title}」已审核通过并发布`)
-    }
+    await auditVote(id, 1)
+    ElMessage.success('审核通过，投票已发布')
+    await loadPendingAudits()
   } catch {}
 }
 
@@ -405,20 +416,9 @@ const rejectVote = async (id: number) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    const index = pendingAuditList.value.findIndex(item => item.id === id)
-    if (index !== -1) {
-      const rejected = pendingAuditList.value[index]
-      pendingAuditList.value.splice(index, 1)
-      myPublish.value.unshift({
-        id: rejected.id,
-        title: rejected.title,
-        auditStatus: '已拒绝',
-        status: '未开始',
-        createTime: new Date().toLocaleString(),
-        options: rejected.options || []
-      })
-      ElMessage.warning(`已拒绝投票「${rejected.title}」`)
-    }
+    await auditVote(id, 2)
+    ElMessage.warning('已拒绝该投票')
+    await loadPendingAudits()
   } catch {}
 }
 
@@ -428,15 +428,18 @@ const rejectVote = async (id: number) => {
 const viewDetail = (id: number) => router.push(`/detail/${id}`)
 const viewResult = (id: number) => router.push(`/result/${id}`)
 
-const unfav = (id: number) => {
-  favorites.value = favorites.value.filter(item => item.id !== id)
-}
-
 // ============================================================
 // 生命周期
 // ============================================================
-onMounted(() => {
-  // 监听 storage 变化，同步其他标签页的修改
+onMounted(async () => {
+  // 并行加载所有数据
+  await Promise.all([
+    loadHistory(),
+    loadFavorites(),
+    loadPoints(),
+    loadPendingAudits()
+  ])
+
   window.addEventListener('storage', () => {
     username.value = localStorage.getItem('username') || '用户'
     avatarUrl.value = localStorage.getItem('avatar') || ''
@@ -447,11 +450,9 @@ onMounted(() => {
 
 <style scoped>
 .profile-container { padding: 20px; }
-
-/* ===== 用户信息卡片 ===== */
+.profile-card { background: #fff !important; }
 .user-info { text-align: center; }
 
-/* 头像 */
 .avatar-wrapper {
   position: relative;
   display: inline-block;
@@ -463,17 +464,18 @@ onMounted(() => {
   font-size: 40px;
   background: #f0f2f5;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .user-avatar:hover {
-  opacity: 0.8;
+  transform: scale(1.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 .avatar-hint {
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.6);
   color: #fff;
   font-size: 12px;
   padding: 4px 12px;
@@ -486,12 +488,9 @@ onMounted(() => {
   transition: opacity 0.3s;
   white-space: nowrap;
 }
-.avatar-wrapper:hover .avatar-hint {
-  opacity: 1;
-}
+.avatar-wrapper:hover .avatar-hint { opacity: 1; }
 .avatar-upload { display: none; }
 
-/* 昵称 */
 .username-wrapper {
   display: flex;
   align-items: center;
@@ -499,23 +498,11 @@ onMounted(() => {
   gap: 8px;
   margin-top: 4px;
 }
-.username-wrapper h3 {
-  margin: 0;
-  font-size: 20px;
-  color: #303133;
-}
-.edit-name-btn {
-  font-size: 13px;
-  padding: 0 4px;
-}
+.username-wrapper h3 { margin: 0; font-size: 20px; color: #303133; }
+.edit-name-btn { font-size: 13px; padding: 0 4px; }
 
-.role {
-  color: #909399;
-  font-size: 14px;
-  margin: 4px 0 16px 0;
-}
+.role { color: #909399; font-size: 14px; margin: 4px 0 16px 0; }
 
-/* 统计 */
 .stats {
   display: flex;
   justify-content: space-around;
@@ -523,32 +510,18 @@ onMounted(() => {
   padding-top: 16px;
   border-top: 1px solid #ebeef5;
 }
-.stats .num {
-  display: block;
-  font-size: 24px;
-  font-weight: bold;
-  color: #409eff;
-}
-.stats .label {
-  font-size: 12px;
-  color: #909399;
-}
+.stats .num { display: block; font-size: 24px; font-weight: bold; color: #409eff; }
+.stats .label { font-size: 12px; color: #909399; }
 
-/* 审核 */
-.audit-header { margin-bottom: 16px; }
+.audit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
 .audit-info { font-size: 14px; color: #606266; }
 
-/* 头像预览 */
-.avatar-preview-area {
-  text-align: center;
-  padding: 20px 0;
-}
-.preview-avatar {
-  display: block;
-  margin: 0 auto;
-}
-.avatar-upload-btn {
-  display: inline-block;
-  margin-top: 16px;
-}
+.avatar-preview-area { text-align: center; padding: 20px 0; }
+.preview-avatar { display: block; margin: 0 auto; }
+.avatar-upload-btn { display: inline-block; margin-top: 16px; }
 </style>
