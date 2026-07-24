@@ -117,3 +117,73 @@ export const login = (uname: string, pwd: string) => {
     params: { uname, pwd }
   })
 }
+
+// ========== 投票排行 ==========
+
+// 14. 获取投票排行
+export const getVoteRanking = (limit: number = 10) => {
+  return request.get('/vote/ranking', { params: { limit } })
+}
+
+// ========== 分享功能 ==========
+
+// 15. 生成分享链接
+export const getShareLink = (voteId: number, baseUrl: string) => {
+  return request.get(`/vote/share/link/${voteId}`, { params: { baseUrl } })
+}
+
+// 16. 生成二维码
+export const getQrCode = (voteId: number, baseUrl: string, width = 300, height = 300) => {
+  return request.get(`/vote/share/qrcode/${voteId}`, {
+    params: { baseUrl, width, height },
+    responseType: 'blob'
+  })
+}
+
+// ========== 个人中心 ==========
+
+// 17. 获取我的投票历史
+export const getMyVoteHistory = () => {
+  return request.get('/vote/history')
+}
+
+// 18. 获取我的收藏
+export const getMyFavorites = () => {
+  return request.get('/user/favorites')
+}
+
+// 19. 获取我的积分
+export const getMyPoints = () => {
+  return request.get('/points/my')
+}
+
+// 20. 获取我的通知
+export const getMyNotifications = () => {
+  return request.get('/user/notifications')
+}
+
+// 21. 获取未读通知数
+export const getUnreadCount = () => {
+  return request.get('/user/notifications/unread-count')
+}
+
+// ========== 头像和个人信息 ==========
+
+// 22. 上传头像
+export const uploadAvatar = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/account/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// 23. 修改用户名
+export const updateUsername = (newUsername: string) => {
+  return request.put('/account/username', null, { params: { newUsername } })
+}
+
+// 24. 修改密码
+export const updatePassword = (oldPwd: string, newPwd: string) => {
+  return request.put('/account/password', null, { params: { oldPwd, newPwd } })
+}

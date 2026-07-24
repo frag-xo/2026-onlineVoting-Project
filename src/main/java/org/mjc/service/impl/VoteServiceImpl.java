@@ -409,6 +409,7 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
     @Override
     public List<Vote> getAllVotes() {
         LambdaQueryWrapper<Vote> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Vote::getDeleted, 0);  // 只查未删除的
         wrapper.orderByDesc(Vote::getCreateTime);
         return this.list(wrapper);
     }
