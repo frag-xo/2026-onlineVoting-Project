@@ -4,13 +4,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mjc.dto.DTO;
+import org.mjc.entity.Account;
 import org.mjc.entity.UserPoints;
 import org.mjc.exception.BusinessException;
 import org.mjc.exception.ErrorCode;
+import org.mjc.service.AccountService;
 import org.mjc.service.UserPointsService;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +31,9 @@ public class PointsController {
 
     @Resource
     private UserPointsService userPointsService;
+
+    @Resource
+    private AccountService accountService;
 
     @Operation(summary = "获取用户积分", description = "获取当前用户的积分信息")
     @GetMapping("/my")
@@ -56,5 +64,42 @@ public class PointsController {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR, "添加积分失败");
         }
         return new DTO<>(200, "积分添加成功");
+    }
+
+    @Operation(summary = "积分排行榜", description = "获取积分排行榜")
+    @GetMapping("/ranking")
+    public DTO<List<Map<String, Object>>> getPointsRanking(
+            @Parameter(description = "排行数量", example = "10")
+            @RequestParam(defaultValue = "10") Integer limit) {
+        // 获取所有用户积分
+        List<UserPoints> allPoints = userPointsService.list();
+
+        // 按积分排序
+        allPoints.sort((a, b) -> Integer.compare(b.getTotalEarned(), a.getTotalEarned()));
+
+        // 构建排行榜数据
+        List<Map<String, Object>> ranking = new ArrayList<>();
+        int rank = 1;
+        for (UserPoints points : allPoints) {
+            if (rank > limit) break;
+
+            Account account = accountService.getById(points.getUserId());
+            if (account == null) continue;
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("rank", rank);
+            item.put("userId", points.getUserId());
+            item.put("username", account.getUname());
+            item.put("realname", account.getRealname());
+            item.put("level", account.getLevel());
+            item.put("totalPoints", points.getTotalEarned());
+            item.put("currentPoints", points.getPoints());
+            ranking.add(item);
+            rank++;
+        }
+
+        DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
+        dto.setT(ranking);
+        return dto;
     }
 }
