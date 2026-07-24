@@ -45,7 +45,7 @@
             <span class="welcome">📋 {{ currentPageTitle }}</span>
           </div>
           <div class="header-right">
-            <!-- 后台管理入口（快捷按钮） -->
+            <!-- 后台快捷入口 -->
             <el-button
               type="primary"
               link
@@ -56,7 +56,7 @@
               <el-icon><Setting /></el-icon> 后台
             </el-button>
 
-            <!-- 登录/注册/用户信息 -->
+            <!-- 已登录：显示用户信息 + 退出 -->
             <template v-if="isLoggedIn">
               <span class="username">👤 {{ username }}</span>
               <span class="role-tag">{{ isAdmin ? '管理员' : '用户' }}</span>
@@ -64,6 +64,8 @@
                 退出
               </el-button>
             </template>
+
+            <!-- 未登录：显示登录 + 注册 -->
             <template v-else>
               <el-button type="primary" link @click="goLogin" class="header-btn">
                 登录
@@ -83,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -120,7 +122,6 @@ const pageTitles: Record<string, string> = {
 
 const updatePageTitle = () => {
   const path = route.path
-  // 匹配动态路由
   if (path.startsWith('/detail')) {
     currentPageTitle.value = '投票详情'
   } else if (path.startsWith('/result')) {
@@ -130,19 +131,29 @@ const updatePageTitle = () => {
   }
 }
 
-// 检查登录状态
+// ✅ 检查登录状态（每次路由变化时也检查）
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token')
+  console.log('🔐 检查登录状态, token:', token ? '存在' : '无')
   if (token) {
     isLoggedIn.value = true
     username.value = localStorage.getItem('username') || '用户'
     const utype = localStorage.getItem('utype')
     isAdmin.value = utype === 'ROLE_1'
+    console.log('✅ 已登录, 角色:', utype)
   } else {
     isLoggedIn.value = false
     username.value = ''
     isAdmin.value = false
+    console.log('❌ 未登录')
   }
+}
+
+// 强制刷新登录状态（用于登录/退出后）
+const refreshLoginStatus = () => {
+  nextTick(() => {
+    checkLoginStatus()
+  })
 }
 
 onMounted(() => {
@@ -150,7 +161,11 @@ onMounted(() => {
   updatePageTitle()
 })
 
-watch(() => route.path, updatePageTitle)
+// 路由变化时重新检查
+watch(() => route.path, () => {
+  updatePageTitle()
+  checkLoginStatus()
+})
 
 // 切换侧边栏折叠
 const toggleCollapse = () => {
@@ -163,15 +178,22 @@ const goLogin = () => router.push('/login')
 const goRegister = () => router.push('/register')
 const goAdmin = () => router.push('/admin')
 
-// 退出登录
+// ✅ 退出登录
 const handleLogout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userId')
   localStorage.removeItem('username')
   localStorage.removeItem('utype')
   isLoggedIn.value = false
+  isAdmin.value = false
   ElMessage.success('已退出登录')
   router.push('/login')
+}
+
+// 暴露刷新方法给子组件（Login.vue 登录成功后调用）
+// 在 Login.vue 中可以通过 window.__refreshLoginStatus 调用
+if (typeof window !== 'undefined') {
+  window.__refreshLoginStatus = refreshLoginStatus
 }
 </script>
 
