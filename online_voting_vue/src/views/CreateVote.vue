@@ -39,7 +39,7 @@
             v-model="form.endTime"
             type="datetime"
             placeholder="选择截止时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
           />
         </el-form-item>
 
@@ -48,7 +48,7 @@
             v-model="form.scheduledTime"
             type="datetime"
             placeholder="选择发布时间（可选）"
-            value-format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
           />
           <span style="font-size:12px;color:#909399;margin-left:10px;">留空则立即发布</span>
         </el-form-item>
