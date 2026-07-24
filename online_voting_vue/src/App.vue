@@ -1,48 +1,136 @@
 <template>
   <div id="app">
-    <header class="app-header">
-      <div class="header-left">
-        <span class="logo-icon">📋</span>
-        <h2 @click="goHome" class="logo">在线投票系统</h2>
-      </div>
-      <div class="header-right">
-        <el-button
-          class="nav-btn"
-          @click="goAdmin"
-          v-if="isLoggedIn && isAdmin"
+    <el-container class="app-container">
+      <!-- 侧边栏 -->
+      <el-aside :width="isCollapse ? '64px' : '220px'" class="app-aside">
+        <div class="logo-area">
+          <span v-if="!isCollapse">📊 投票系统</span>
+          <span v-else>📊</span>
+        </div>
+        <el-menu
+          :collapse="isCollapse"
+          :collapse-transition="false"
+          router
+          background-color="#304156"
+          text-color="#bfcbd9"
+          active-text-color="#409eff"
+          class="app-menu"
         >
-          后台管理
-        </el-button>
+          <el-menu-item index="/">
+            <el-icon><House /></el-icon>
+            <template #title>投票列表</template>
+          </el-menu-item>
+          <el-menu-item index="/admin" v-if="isLoggedIn && isAdmin">
+            <el-icon><Setting /></el-icon>
+            <template #title>后台管理</template>
+          </el-menu-item>
+          <el-menu-item index="/dashboard" v-if="isLoggedIn && isAdmin">
+            <el-icon><DataAnalysis /></el-icon>
+            <template #title>数据看板</template>
+          </el-menu-item>
+        </el-menu>
+        <!-- 折叠按钮 -->
+        <div class="collapse-btn" @click="toggleCollapse">
+          <el-icon>
+            <DArrowLeft v-if="!isCollapse" />
+            <DArrowRight v-else />
+          </el-icon>
+        </div>
+      </el-aside>
 
-        <template v-if="isLoggedIn">
-          <span class="username">👋 {{ username }}</span>
-          <el-button class="logout-btn" @click="handleLogout">退出</el-button>
-        </template>
+      <!-- 主内容区 -->
+      <el-container>
+        <el-header class="app-header">
+          <div class="header-left">
+            <span class="welcome">📋 {{ currentPageTitle }}</span>
+          </div>
+          <div class="header-right">
+            <!-- 后台管理入口（快捷按钮） -->
+            <el-button
+              type="primary"
+              link
+              @click="goAdmin"
+              v-if="isLoggedIn && isAdmin"
+              class="header-btn"
+            >
+              <el-icon><Setting /></el-icon> 后台
+            </el-button>
 
-        <template v-else>
-          <el-button class="nav-btn" @click="goLogin">登录</el-button>
-          <el-button class="nav-btn nav-btn-reg" @click="goRegister">注册</el-button>
-        </template>
-      </div>
-    </header>
-
-    <main class="app-main">
-      <router-view />
-    </main>
+            <!-- 登录/注册/用户信息 -->
+            <template v-if="isLoggedIn">
+              <span class="username">👤 {{ username }}</span>
+              <span class="role-tag">{{ isAdmin ? '管理员' : '用户' }}</span>
+              <el-button type="danger" link @click="handleLogout" class="header-btn">
+                退出
+              </el-button>
+            </template>
+            <template v-else>
+              <el-button type="primary" link @click="goLogin" class="header-btn">
+                登录
+              </el-button>
+              <el-button type="primary" link @click="goRegister" class="header-btn">
+                注册
+              </el-button>
+            </template>
+          </div>
+        </el-header>
+        <el-main class="app-main">
+          <router-view />
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import {
+  House,
+  Setting,
+  DataAnalysis,
+  DArrowLeft,
+  DArrowRight
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
+const route = useRoute()
 
+// 侧边栏折叠状态
+const isCollapse = ref(localStorage.getItem('sidebarCollapse') === 'true')
+
+// 用户状态
 const isLoggedIn = ref(false)
 const username = ref('')
 const isAdmin = ref(false)
 
+// 当前页面标题
+const currentPageTitle = ref('投票列表')
+
+const pageTitles: Record<string, string> = {
+  '/': '投票列表',
+  '/login': '登录',
+  '/register': '注册',
+  '/admin': '后台管理',
+  '/dashboard': '数据看板',
+  '/detail': '投票详情',
+  '/result': '投票结果'
+}
+
+const updatePageTitle = () => {
+  const path = route.path
+  // 匹配动态路由
+  if (path.startsWith('/detail')) {
+    currentPageTitle.value = '投票详情'
+  } else if (path.startsWith('/result')) {
+    currentPageTitle.value = '投票结果'
+  } else {
+    currentPageTitle.value = pageTitles[path] || '投票系统'
+  }
+}
+
+// 检查登录状态
 const checkLoginStatus = () => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -59,18 +147,23 @@ const checkLoginStatus = () => {
 
 onMounted(() => {
   checkLoginStatus()
+  updatePageTitle()
 })
 
-// 监听路由变化，每次切换页面时重新检查登录状态
-router.afterEach(() => {
-  checkLoginStatus()
-})
+watch(() => route.path, updatePageTitle)
 
-const goHome = () => router.push('/')
+// 切换侧边栏折叠
+const toggleCollapse = () => {
+  isCollapse.value = !isCollapse.value
+  localStorage.setItem('sidebarCollapse', String(isCollapse.value))
+}
+
+// 跳转方法
 const goLogin = () => router.push('/login')
 const goRegister = () => router.push('/register')
 const goAdmin = () => router.push('/admin')
 
+// 退出登录
 const handleLogout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userId')
@@ -90,115 +183,115 @@ const handleLogout = () => {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f8f9fb;
-  min-height: 100vh;
-  color: #1a1a2e;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f0f2f5;
+  height: 100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
+html,
 #app {
-  min-height: 100vh;
+  height: 100%;
 }
 
+.app-container {
+  height: 100%;
+}
+
+/* 侧边栏 */
+.app-aside {
+  background-color: #304156;
+  transition: width 0.3s;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
+.logo-area {
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #2b3a4a;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.app-menu {
+  border-right: none;
+  flex: 1;
+  overflow-y: auto;
+}
+.app-menu .el-menu-item {
+  height: 50px;
+  line-height: 50px;
+}
+
+.collapse-btn {
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  color: #bfcbd9;
+  cursor: pointer;
+  background-color: #2b3a4a;
+  transition: background-color 0.2s;
+}
+.collapse-btn:hover {
+  background-color: #1f2d3d;
+}
+.collapse-btn .el-icon {
+  font-size: 20px;
+}
+
+/* 顶部栏 */
 .app-header {
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 24px;
   height: 60px;
-  padding: 0 36px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo-icon {
-  font-size: 22px;
-}
-
-.header-left .logo {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a2e;
-  cursor: pointer;
-  user-select: none;
-  letter-spacing: 0.5px;
+.header-left .welcome {
+  font-size: 16px;
+  color: #303133;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
-.header-right .username {
-  color: #606266;
+.header-btn {
   font-size: 14px;
 }
 
-.nav-btn {
-  border-radius: 8px !important;
-  font-size: 13px !important;
-  padding: 8px 18px !important;
-  border: 1px solid #dcdfe6 !important;
-  background: #fff !important;
-  color: #303133 !important;
-  transition: all 0.2s !important;
+.username {
+  color: #303133;
+  font-size: 14px;
 }
 
-.nav-btn:hover {
-  border-color: #409eff !important;
-  color: #409eff !important;
-  background: #ecf5ff !important;
+.role-tag {
+  font-size: 12px;
+  color: #909399;
+  background-color: #f4f4f5;
+  padding: 2px 12px;
+  border-radius: 12px;
 }
 
-.nav-btn-reg {
-  background: #4361ee !important;
-  color: #fff !important;
-  border-color: #4361ee !important;
-}
-
-.nav-btn-reg:hover {
-  background: #3651d4 !important;
-  border-color: #3651d4 !important;
-  color: #fff !important;
-  transform: scale(1.02);
-}
-
-.logout-btn {
-  border-radius: 8px !important;
-  font-size: 13px !important;
-  padding: 8px 18px !important;
-  border: 1px solid #f56c6c !important;
-  background: #fff !important;
-  color: #f56c6c !important;
-  transition: all 0.2s !important;
-}
-
-.logout-btn:hover {
-  background: #fef0f0 !important;
-}
-
+/* 主内容区 */
 .app-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px 40px;
+  background-color: #f0f2f5;
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
 }
 </style>

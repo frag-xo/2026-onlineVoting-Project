@@ -112,3 +112,8 @@ export const login = (uname: string, pwd: string) => {
     params: { uname, pwd }
   })
 }
+
+// 获取每日参与趋势（近7天）
+export const getTrend = () => {
+  return request.get('/admin/trend')
+}

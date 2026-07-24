@@ -7,7 +7,8 @@ const routes = [
   { path: '/register', name: 'Register', component: () => import('../views/Register.vue') },
   { path: '/detail/:id', name: 'VoteDetail', component: () => import('../views/VoteDetail.vue') },
   { path: '/result/:id', name: 'VoteResult', component: () => import('../views/VoteResult.vue') },
-  { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue') }
+  { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue') },
+  { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue') }
 ]
 
 const router = createRouter({
