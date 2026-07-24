@@ -34,7 +34,7 @@ public class WheelServiceImpl extends ServiceImpl<WheelPrizeMapper, WheelPrize> 
     @Resource
     private UserPointsService userPointsService;
 
-    private final Random random = new Random();
+    private final java.security.SecureRandom random = new java.security.SecureRandom();
 
     @Override
     public List<WheelPrize> getActivePrizes() {

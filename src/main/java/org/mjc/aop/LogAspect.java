@@ -114,13 +114,12 @@ public class LogAspect {
       System.out.println(customException.getMessage());
       HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
             .getResponse();
-      PrintWriter out = response.getWriter();
-      ObjectMapper mapper = new ObjectMapper();
-      DTO dto = new DTO(409, "操作失败");
-      out.print(mapper.writeValueAsString(dto));
-      out.flush();
-      out.close();
-
+      try (PrintWriter out = response.getWriter()) {
+          ObjectMapper mapper = new ObjectMapper();
+          DTO dto = new DTO(409, "操作失败");
+          out.print(mapper.writeValueAsString(dto));
+          out.flush();
+      }
    }
 
    /**

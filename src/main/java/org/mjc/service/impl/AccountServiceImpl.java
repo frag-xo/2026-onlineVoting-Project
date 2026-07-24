@@ -104,7 +104,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     private static final String[] NAMES = {"伟", "芳", "娜", "敏", "静", "强", "磊", "洋", "勇", "军"};
     private static final String[] PHONES = {"138", "139", "150", "151", "152", "186", "187", "188"};
 
-    private final java.util.Random random = new java.util.Random();
+    private final java.security.SecureRandom random = new java.security.SecureRandom();
 
     @Override
     public List<Account> generateRandomAccounts(int count) {

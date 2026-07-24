@@ -38,7 +38,7 @@ public class CaptchaController {
     private static final String CAPTCHA_PREFIX = "captcha:";
     private static final long CAPTCHA_EXPIRE_MINUTES = 5;
 
-    private final Random random = new Random();
+    private final java.security.SecureRandom random = new java.security.SecureRandom();
 
     @Operation(summary = "生成验证码", description = "生成图形验证码，返回验证码ID和图片Base64")
     @GetMapping("/generate")

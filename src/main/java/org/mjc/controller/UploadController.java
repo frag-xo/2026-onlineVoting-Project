@@ -47,7 +47,7 @@ public class UploadController {
             String newFileName = "";
             for(MultipartFile file:files) {
                   newFileName = df.format(new Date());
-                newFileName += Math.abs(new Random().nextInt() % 1000);
+                newFileName += Math.abs(new java.security.SecureRandom().nextInt() % 1000);
                 try {
                     String fileName = file.getOriginalFilename();
                     String model = Optional.ofNullable(request.getParameter("model")).orElse("temp");//不同的图片 存放不同的目录

@@ -71,7 +71,7 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
 
     private static final Long[] CREATOR_IDS = {1L, 2L, 3L, 4L, 5L};
 
-    private final java.util.Random random = new java.util.Random();
+    private final java.security.SecureRandom random = new java.security.SecureRandom();
 
     /**
      * 生成随机投票数据

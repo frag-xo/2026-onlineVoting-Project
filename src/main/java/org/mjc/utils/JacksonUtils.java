@@ -76,8 +76,8 @@ public class JacksonUtils {
               dto = new DTO(409,"json字符串为空");
             }else {
                 dto = JSONUtil.toBean(jsonString, DTO.class);
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(jsonString);
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode root = objectMapper.readTree(jsonString);
 
                 //手动处理t
                 Optional<JsonNode> tJsonNodeOp = Optional.ofNullable(root.get("t"));
