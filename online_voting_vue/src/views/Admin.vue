@@ -289,9 +289,9 @@ const loadDashboard = async () => {
   dashboardLoading.value = true
   try {
     const data = await getDashboard()
-    statistics.totalVotes = data.totalVotes || 0
-    statistics.totalParticipants = data.totalParticipants || 0
-    statistics.activeVotes = data.activeVotes || 0
+    statistics.totalVotes = data.voteCount || 0
+    statistics.totalParticipants = data.recordCount || 0
+    statistics.activeVotes = data.ongoingVoteCount || 0
   } catch (error: any) {
     // 看板接口失败不影响主功能
     console.warn('加载看板数据失败', error.message)

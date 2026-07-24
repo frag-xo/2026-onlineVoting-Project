@@ -61,9 +61,9 @@ let lineChart: echarts.ECharts | null = null
 const loadStatistics = async () => {
   try {
     const data = await getDashboard()
-    statistics.value.totalVotes = data.totalVotes || 0
-    statistics.value.totalParticipants = data.totalParticipants || 0
-    statistics.value.activeVotes = data.activeVotes || 0
+    statistics.value.totalVotes = data.voteCount || 0
+    statistics.value.totalParticipants = data.recordCount || 0
+    statistics.value.activeVotes = data.ongoingVoteCount || 0
   } catch (error) {
     console.warn('加载统计数据失败', error)
   }
@@ -88,8 +88,8 @@ const loadVoteList = async () => {
 const loadTrend = async () => {
   try {
     const data = await getTrend()
-    trendData.value.dates = data.dates || []
-    trendData.value.counts = data.counts || []
+    trendData.value.dates = data.trendLabels || []
+    trendData.value.counts = data.trendValues || []
   } catch (error) {
     console.warn('加载趋势数据失败，使用模拟数据', error)
     // 如果后端无接口，生成模拟近7天数据
