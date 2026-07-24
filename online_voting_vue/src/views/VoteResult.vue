@@ -1,9 +1,13 @@
 <template>
   <div class="result-container">
     <div class="result-header">
-      <h2>{{ voteTitle }}</h2>
-      <p>总票数：{{ totalVotes }}</p>
-      <el-button type="primary" size="small" @click="goBack">返回列表</el-button>
+      <div>
+        <h2>{{ voteTitle }}</h2>
+        <p class="total-votes">总票数：{{ totalVotes }}</p>
+      </div>
+      <div>
+        <el-button type="primary" size="small" @click="goBack">返回列表</el-button>
+      </div>
     </div>
 
     <div ref="chartRef" class="chart-box"></div>
@@ -19,6 +23,25 @@
         </el-table-column>
       </el-table>
     </div>
+
+    <!-- ✅ 满意度调查入口 -->
+    <div style="text-align: center; margin-top: 24px;">
+      <el-button type="warning" plain @click="showSurvey = true">
+        📝 填写满意度调查
+      </el-button>
+    </div>
+
+    <!-- ✅ 满意度调查弹窗 -->
+    <el-dialog v-model="showSurvey" title="投票满意度调查" width="420px" :close-on-click-modal="false">
+      <div style="text-align: center; padding: 8px 0;">
+        <p style="margin-bottom: 16px; color: #606266;">您对本次投票的整体体验满意吗？</p>
+        <el-rate v-model="surveyScore" :texts="['很差', '较差', '一般', '满意', '很满意']" show-text text-color="#409eff" />
+      </div>
+      <template #footer>
+        <el-button @click="showSurvey = false">稍后评价</el-button>
+        <el-button type="primary" @click="submitSurvey" :disabled="surveyScore === 0">提交评价</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -43,15 +66,30 @@ const totalVotes = ref(0)
 const optionsData = ref<{ text: string; count: number; percentage: number }[]>([])
 const loading = ref(false)
 
+// ✅ 满意度调查
+const showSurvey = ref(false)
+const surveyScore = ref(0)
+const submitSurvey = () => {
+  if (surveyScore.value === 0) {
+    ElMessage.warning('请选择评分')
+    return
+  }
+  // 模拟提交（后续对接后端接口）
+  ElMessage.success('感谢您的评价！')
+  showSurvey.value = false
+  surveyScore.value = 0
+}
+
 const loadResult = async () => {
   loading.value = true
   try {
     const data = await getVoteResult(voteId)
-    // 后端返回 { title, totalVoters, options: [{ optionText, count }] }
-    voteTitle.value = data.title || ''
-    totalVotes.value = data.totalCount || 0
+    // 后端返回 { title, totalCount, options: [{ optionText, count }] }
+    voteTitle.value = data.vote?.title || data.title || ''
+    totalVotes.value = data.totalCount || data.vote?.totalVoters || 0
     const total = totalVotes.value
-    optionsData.value = (data.options || []).map((item: any) => ({
+    const options = data.options || []
+    optionsData.value = options.map((item: any) => ({
       text: item.optionText || item.text,
       count: item.count || 0,
       percentage: total > 0 ? (item.count / total) * 100 : 0
@@ -115,7 +153,7 @@ const handleResize = () => {
 }
 
 const startPolling = () => {
-  timer = setInterval(loadResult, 30000)
+  timer = setInterval(loadResult, 3000)
 }
 
 const goBack = () => {
@@ -152,6 +190,12 @@ onBeforeUnmount(() => {
   font-size: 22px;
   font-weight: 600;
   color: #1a1a2e;
+  margin: 0 0 4px 0;
+}
+.total-votes {
+  color: #8e8ea0;
+  font-size: 14px;
+  margin: 0;
 }
 .chart-box {
   width: 100%;

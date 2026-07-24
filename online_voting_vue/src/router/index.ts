@@ -8,7 +8,10 @@ const routes = [
   { path: '/detail/:id', name: 'VoteDetail', component: () => import('../views/VoteDetail.vue') },
   { path: '/result/:id', name: 'VoteResult', component: () => import('../views/VoteResult.vue') },
   { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue') },
-  { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue') }
+  { path: '/dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue') },
+  { path: '/profile', name: 'Profile', component: () => import('../views/Profile.vue') },
+  { path: '/rankings', name: 'Rankings', component: () => import('../views/Rankings.vue') },
+  { path: '/create', name: 'CreateVote', component: () => import('../views/CreateVote.vue') }
 ]
 
 const router = createRouter({
@@ -16,26 +19,15 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：未登录只能访问登录/注册页，已登录不重复跳到登录页
+// 路由守卫：未登录跳转登录页
 router.beforeEach((to) => {
-  const token = localStorage.getItem('token')
-  const utype = localStorage.getItem('utype')
-
-  // 未登录 → 跳登录页（静态资源/登录/注册放行）
-  if (!token && to.path !== '/login' && to.path !== '/register') {
-    return { path: '/login', query: { redirect: to.fullPath } }
+  const publicPages = ['/', '/login', '/register', '/detail', '/result']
+  if (!publicPages.includes(to.path) && !to.path.startsWith('/detail') && !to.path.startsWith('/result')) {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      return { path: '/login', query: { redirect: to.fullPath } }
+    }
   }
-
-  // 已登录 → 不允许跳登录/注册页（回首页）
-  if (token && (to.path === '/login' || to.path === '/register')) {
-    return { path: '/' }
-  }
-
-  // 管理员专有页
-  if (to.path === '/admin' && utype !== 'ROLE_1') {
-    return { path: '/', query: { redirect: to.fullPath } }
-  }
-
   return true
 })
 

@@ -106,7 +106,6 @@ import request from '@/api/index'
 const router = useRouter()
 const voteList = ref<any[]>([])
 const loading = ref(false)
-const isAdmin = ref(false)
 const statusFilter = ref<number | ''>('')
 const sortBy = ref('endTime-asc')
 const filterTabs = [
@@ -123,22 +122,16 @@ const endedCount = computed(() => voteList.value.filter(v => v.status === '已�
 const loadVotes = async () => {
   loading.value = true
   try {
-    // 解析排序参数
     const [orderBy, orderDirection] = sortBy.value.split('-')
-
-    // 构建查询参数
     const params: any = {
       pageNum: 1,
       pageSize: 100,
       orderBy,
       orderDirection
     }
-
-    // 添加状态筛选
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
     }
-
     const data = await getVoteList(params)
     const records = data.records || data || []
     voteList.value = records.map((item: any) => ({
@@ -172,7 +165,6 @@ const handleShare = async (id: number, cmd: string) => {
     }
   } else if (cmd === 'qrcode') {
     try {
-      // 直接用 fetch 请求二维码图片，手动带 token
       const token = localStorage.getItem('token')
       const resp = await fetch(`http://localhost:8080/api/vote/share/qrcode/${id}?baseUrl=${encodeURIComponent(baseUrl)}&width=300&height=300`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -196,14 +188,8 @@ const goResult = (id: number) => {
   router.push(`/result/${id}`)
 }
 
-const goAdmin = () => {
-  router.push('/admin')
-}
-
 onMounted(() => {
   loadVotes()
-  const utype = localStorage.getItem('utype')
-  isAdmin.value = utype === 'ROLE_1'
 })
 </script>
 
