@@ -191,7 +191,7 @@ public class AdminController {
 
         // 验证角色值
         if (!"ROLE_1".equals(utype) && !"ROLE_3".equals(utype)) {
-            throw new BusinessException(400, "无效的角色值，只能是 ROLE_1 或 ROLE_3");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "无效的角色值，只能是 ROLE_1 或 ROLE_3");
         }
 
         account.setUtype(utype);

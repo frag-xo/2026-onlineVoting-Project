@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.mjc.entity.Vote;
 import org.mjc.exception.BusinessException;
+import org.mjc.exception.ErrorCode;
 import org.mjc.service.ExportService;
 import org.springframework.stereotype.Service;
 
@@ -104,7 +105,7 @@ public class ExportServiceImpl implements ExportService {
 
         } catch (IOException e) {
             log.error("导出Excel失败", e);
-            throw new BusinessException(500, "导出Excel失败：" + e.getMessage());
+            throw new BusinessException(ErrorCode.EXPORT_FAILED, e.getMessage());
         }
     }
 }

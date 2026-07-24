@@ -10,6 +10,8 @@ import org.mjc.dto.vote.VoteResponseDTO;
 import org.mjc.dto.vote.VoteSaveDTO;
 import org.mjc.entity.Vote;
 import org.mjc.entity.VoteOption;
+import org.mjc.exception.BusinessException;
+import org.mjc.exception.ErrorCode;
 import org.mjc.mapper.VoteMapper;
 import org.mjc.service.VoteOptionService;
 import org.mjc.service.VoteRecordService;
@@ -145,11 +147,16 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
 
         Integer pageNum = queryDTO.getPageNum();
         Integer pageSize = queryDTO.getPageSize();
+
+        // 分页参数校验
         if (pageNum == null || pageNum < 1) {
-            pageNum = 1;
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "页码必须大于0");
         }
         if (pageSize == null || pageSize < 1) {
-            pageSize = 10;
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "每页条数必须大于0");
+        }
+        if (pageSize > 100) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "每页条数不能超过100");
         }
 
         Page<Vote> page = new Page<>(pageNum, pageSize);
@@ -219,11 +226,15 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
 
     @Override
     public Page<VoteResponseDTO> queryPageSimpleDTO(Integer pageNum, Integer pageSize) {
+        // 分页参数校验
         if (pageNum == null || pageNum < 1) {
-            pageNum = 1;
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "页码必须大于0");
         }
         if (pageSize == null || pageSize < 1) {
-            pageSize = 10;
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "每页条数必须大于0");
+        }
+        if (pageSize > 100) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "每页条数不能超过100");
         }
 
         Page<Vote> page = new Page<>(pageNum, pageSize);

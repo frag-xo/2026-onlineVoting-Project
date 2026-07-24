@@ -127,7 +127,7 @@ public class AccountController {
 
         Account account = accountService.getById(id);
         if (account == null) {
-            throw new BusinessException(404, "用户不存在");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 返回时不包含密码
@@ -154,7 +154,7 @@ public class AccountController {
             @RequestBody Account account,
             jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
         if (account.getId() == null) {
-            throw new BusinessException(400, "用户ID不能为空");
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "用户ID不能为空");
         }
 
         // 从 token 中获取当前用户ID
@@ -162,7 +162,7 @@ public class AccountController {
 
         // 只能改自己
         if (!account.getId().equals(currentUserId)) {
-            throw new BusinessException(403, "无权修改其他用户信息");
+            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
         // 不允许修改密码和角色
@@ -172,7 +172,7 @@ public class AccountController {
 
         boolean result = accountService.updateById(account);
         if (!result) {
-            throw new BusinessException(500, "修改失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "修改失败");
         }
 
         Account updated = accountService.getById(account.getId());
@@ -207,7 +207,7 @@ public class AccountController {
         account.setUpdateTime(java.time.LocalDateTime.now());
         boolean result = accountService.updateById(account);
         if (!result) {
-            throw new BusinessException(500, "修改密码失败");
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "修改密码失败");
         }
 
         DTO<Void> dto = new DTO<>(200, "修改密码成功");

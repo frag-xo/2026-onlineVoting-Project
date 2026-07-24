@@ -164,6 +164,11 @@ public class UserCenterController {
     public DTO<Void> markAsRead(
             @Parameter(description = "通知ID", required = true)
             @PathVariable Long id) throws BusinessException {
+        // 先检查通知是否存在
+        org.mjc.entity.VoteNotification notification = voteNotificationService.getById(id);
+        if (notification == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "通知不存在");
+        }
         boolean result = voteNotificationService.markAsRead(id);
         if (!result) {
             throw new BusinessException(ErrorCode.INTERNAL_ERROR, "标记失败");
