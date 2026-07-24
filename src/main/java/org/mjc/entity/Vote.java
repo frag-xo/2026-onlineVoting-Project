@@ -136,4 +136,11 @@ public class Vote implements Serializable {
     @TableField("group_id")
     @Schema(description = "所属分组ID")
     private Long groupId;
+
+    /**
+     * 是否推荐：0-否，1-是
+     */
+    @TableField("is_recommended")
+    @Schema(description = "是否推荐：0-否，1-是")
+    private Integer isRecommended;
 }
