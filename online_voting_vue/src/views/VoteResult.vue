@@ -49,7 +49,7 @@ const loadResult = async () => {
     const data = await getVoteResult(voteId)
     // 后端返回 { title, totalVoters, options: [{ optionText, count }] }
     voteTitle.value = data.title || ''
-    totalVotes.value = data.totalVoters || 0
+    totalVotes.value = data.totalCount || 0
     const total = totalVotes.value
     optionsData.value = (data.options || []).map((item: any) => ({
       text: item.optionText || item.text,
