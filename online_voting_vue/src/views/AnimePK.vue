@@ -337,21 +337,28 @@ onMounted(() => initPool())
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .vs-card:hover {
-  transform: translateY(-6px) scale(1.015);
+  transform: scale(1.07);
 }
 .vs-card:hover .card-img-wrap {
   box-shadow:
     0 0 0 1.5px rgba(255,255,255,0.08),
-    0 0 40px rgba(99,102,241,0.08);
+    0 0 50px rgba(99,102,241,0.1);
 }
-.vs-card:hover .card-image {
-  transform: scale(1.04);
+.vs-card:hover .card-img-wrap {
+  transform: scale(1.06);
+}
+.vs-card:hover .card-name {
+  color: #fff;
 }
 .vs-card.is-chosen {
-  transform: scale(1.03); z-index: 2;
+  transform: scale(1.12);
+  z-index: 2;
 }
 .vs-card.is-chosen .card-glow {
-  opacity: 0.4;
+  opacity: 0.55;
+}
+.vs-card.is-chosen .card-image {
+  transform: scale(1.08);
 }
 .vs-card.is-eliminated {
   opacity: 0.2; transform: scale(0.9); pointer-events: none;
@@ -377,8 +384,8 @@ onMounted(() => initPool())
 .card-img-wrap {
   position: relative; border-radius: 16px; overflow: hidden;
   aspect-ratio: 400 / 560; background: #14141f; z-index: 1;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
 }
-.card-img-wrap { transition: box-shadow 0.4s ease; }
 
 .card-shine {
   position: absolute; inset: 0;
