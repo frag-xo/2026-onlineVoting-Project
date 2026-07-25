@@ -294,3 +294,7 @@ export const checkWheelDrawn = (voteId: number) => {
 export const getWheelPrizes = () => {
   return request.get('/wheel/prizes')
 }
+
+export const getPointsLog = () => {
+  return request.get('/points/log')
+}

@@ -60,6 +60,13 @@
                 📖 积分规则
               </el-button>
             </div>
+
+            <!-- 新增：积分变动记录按钮 -->
+            <div style="margin-top: 12px;">
+              <el-button size="small" type="primary" plain @click="showPointsLog = true" style="width: 100%;">
+                📊 积分变动记录
+              </el-button>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -217,11 +224,41 @@
         </el-table>
       </div>
     </el-dialog>
+
+    <!-- 积分变动记录弹窗 -->
+    <el-dialog v-model="showPointsLog" title="积分变动记录" width="750px">
+      <el-table :data="pointsLogList" v-loading="pointsLogLoading" stripe>
+        <el-table-column prop="createTime" label="时间" width="180">
+          <template #default="{ row }">
+            {{ new Date(row.createTime).toLocaleString() }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="type" label="类型" width="120">
+          <template #default="{ row }">
+            <el-tag :type="row.points > 0 ? 'success' : 'danger'">
+              {{ row.type }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="points" label="变动积分" width="120" align="center">
+          <template #default="{ row }">
+            <span :style="{ color: row.points > 0 ? '#67c23a' : '#f56c6c' }">
+              {{ row.points > 0 ? '+' : '' }}{{ row.points }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="description" label="说明" min-width="150" />
+      </el-table>
+      <el-empty v-if="!pointsLogLoading && pointsLogList.length === 0" description="暂无积分变动记录" />
+      <template #footer>
+        <el-button @click="showPointsLog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Camera, Edit } from '@element-plus/icons-vue'
@@ -235,7 +272,8 @@ import {
   uploadAvatar,
   unfavoriteVote,
   getVoteList,
-  getVoteDetail
+  getVoteDetail,
+  getPointsLog
 } from '@/api/vote'
 
 const router = useRouter()
@@ -254,6 +292,28 @@ const displayName = computed(() => username.value)
 
 // 积分规则
 const showRulesDialog = ref(false)
+
+// 积分变动记录
+const showPointsLog = ref(false)
+const pointsLogList = ref<any[]>([])
+const pointsLogLoading = ref(false)
+
+const loadPointsLog = async () => {
+  pointsLogLoading.value = true
+  try {
+    const data = await getPointsLog()
+    pointsLogList.value = data || []
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载积分记录失败')
+  } finally {
+    pointsLogLoading.value = false
+  }
+}
+
+// 监听弹窗打开，加载数据
+watch(showPointsLog, (val) => {
+  if (val) loadPointsLog()
+})
 
 const levelInfo = computed(() => {
   const points = stats.value.points || 0
