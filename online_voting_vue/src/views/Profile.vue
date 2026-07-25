@@ -640,6 +640,7 @@ const userLoading = ref(false)
 const userList = ref<any[]>([])
 
 const loadUserList = async () => {
+  if (!isAdmin.value) return
   userLoading.value = true
   try {
     const data = await getUserList()
