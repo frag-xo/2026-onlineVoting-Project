@@ -23,18 +23,38 @@
 
     <!-- 筛选区域 -->
     <div class="filter-area">
-      <div class="filter-group">
-        <button
-          v-for="tab in filterTabs"
-          :key="tab.value"
-          :class="['filter-tag', { active: statusFilter === tab.value }]"
-          @click="statusFilter = tab.value; loadVotes()"
+      <!-- 左侧：搜索框 + 状态筛选 -->
+      <div class="filter-left">
+        <!-- ✅ 新增搜索框 -->
+        <el-input
+          v-model="searchKeyword"
+          placeholder="输入投票标题搜索..."
+          clearable
+          size="default"
+          style="width: 240px; margin-right: 12px;"
+          @keyup.enter="handleSearch"
+          @clear="handleSearch"
         >
-          {{ tab.label }}
-        </button>
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-input>
+
+        <div class="filter-group">
+          <button
+            v-for="tab in filterTabs"
+            :key="tab.value"
+            :class="['filter-tag', { active: statusFilter === tab.value }]"
+            @click="statusFilter = tab.value; handleSearch()"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
       </div>
+
+      <!-- 右侧：排序 -->
       <div class="sort-group">
-        <el-select v-model="sortBy" placeholder="排序方式" @change="loadVotes" class="filter-select">
+        <el-select v-model="sortBy" placeholder="排序方式" @change="handleSearch" class="filter-select">
           <el-option label="截止时间 ↑" value="endTime-asc" />
           <el-option label="截止时间 ↓" value="endTime-desc" />
           <el-option label="最新发布" value="createTime-desc" />
@@ -109,6 +129,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { getVoteList, likeVote } from '@/api/vote'
 import request from '@/api/index'
 
@@ -117,6 +138,8 @@ const voteList = ref<any[]>([])
 const loading = ref(false)
 const statusFilter = ref<number | ''>('')
 const sortBy = ref('endTime-asc')
+const searchKeyword = ref('') // ✅ 搜索关键词
+
 const filterTabs = [
   { label: '全部', value: '' },
   { label: '进行中', value: 1 },
@@ -133,7 +156,8 @@ const loadVotes = async () => {
     const [orderBy, orderDirection] = sortBy.value.split('-')
     const params: any = {
       pageNum: 1,
-      pageSize: 100
+      pageSize: 100,
+      title: searchKeyword.value // ✅ 传递搜索关键词
     }
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
@@ -162,6 +186,18 @@ const loadVotes = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// ✅ 搜索处理
+const handleSearch = () => {
+  loadVotes()
+}
+
+// ✅ 重置搜索（清空关键词和状态筛选）
+const resetSearch = () => {
+  searchKeyword.value = ''
+  statusFilter.value = ''
+  loadVotes()
 }
 
 const toggleLike = async (item: any) => {
@@ -493,5 +529,45 @@ onMounted(() => {
   margin-top: 16px;
   color: #8e8ea0;
   font-size: 14px;
+}
+
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.filter-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 6px;
+  background: #f0f0f3;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+/* ✅ 搜索框样式优化 */
+:deep(.el-input__wrapper) {
+  border-radius: 10px !important;
+  border: 1px solid #e8e8ed !important;
+  box-shadow: none !important;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: #4361ee !important;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #4361ee !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1) !important;
 }
 </style>

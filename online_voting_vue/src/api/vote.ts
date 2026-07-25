@@ -2,14 +2,16 @@ import request from './index'
 
 // ========== 用户端 ==========
 
-// 1. 获取投票列表（分页）
+// 1. 获取投票列表（分页 + 模糊查询）
 export const getVoteList = (params: any = {}) => {
   return request.post('/vote/page', {
     pageNum: params.pageNum || 1,
     pageSize: params.pageSize || 100,
     status: params.status,
     orderBy: params.orderBy,
-    orderDirection: params.orderDirection
+    orderDirection: params.orderDirection,
+    title: params.title,
+    creatorId: params.creatorId
   })
 }
 
