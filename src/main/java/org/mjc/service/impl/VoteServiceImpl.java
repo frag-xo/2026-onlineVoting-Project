@@ -300,6 +300,19 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
         if (vote.getStatus() == null) {
             vote.setStatus(1);
         }
+        Long creatorId = saveDTO.getCreatorId();
+        if (creatorId != null) {
+            Account creator = accountService.getById(creatorId);
+            if (creator != null && "ROLE_1".equals(creator.getUtype())) {
+                // 管理员发布：审核状态设为已通过
+                vote.setAuditStatus(1);
+            } else {
+                // 普通用户发布：审核状态设为待审核
+                vote.setAuditStatus(0);
+            }
+        } else {
+            vote.setAuditStatus(0);
+        }
 
         boolean result = this.save(vote);
         if (result) {
