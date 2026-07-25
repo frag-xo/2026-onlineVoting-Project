@@ -286,4 +286,62 @@ public class AccountController {
 
         return new DTO<>(200, "用户名修改成功");
     }
+
+    // ==================== 管理员用户管理 ====================
+
+    @Operation(summary = "获取用户列表（管理员）", description = "获取所有用户列表，按注册时间倒序")
+    @GetMapping("/list")
+    public DTO<List<Account>> getUserList(jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        Account currentUser = accountService.getById(userId);
+        if (currentUser == null || !"ROLE_1".equals(currentUser.getUtype())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "仅管理员可操作");
+        }
+        List<Account> users = accountService.getAllUsers();
+        users.forEach(u -> u.setPwd(null));
+        DTO<List<Account>> dto = new DTO<>(200, "查询成功");
+        dto.setT(users);
+        return dto;
+    }
+
+    @Operation(summary = "切换用户状态（管理员）", description = "启用或禁用指定用户账号")
+    @PutMapping("/{id}/status")
+    public DTO<Void> toggleStatus(
+            @Parameter(description = "用户ID", required = true) @PathVariable Long id,
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        Account currentUser = accountService.getById(userId);
+        if (currentUser == null || !"ROLE_1".equals(currentUser.getUtype())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "仅管理员可操作");
+        }
+        if (id.equals(userId)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "不能禁用自己");
+        }
+        boolean result = accountService.toggleUserStatus(id);
+        if (!result) {
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "操作失败");
+        }
+        return new DTO<>(200, "状态已更新");
+    }
+
+    @Operation(summary = "修改用户角色（管理员）", description = "修改用户角色为管理员或普通用户")
+    @PutMapping("/{id}/role")
+    public DTO<Void> updateRole(
+            @Parameter(description = "用户ID", required = true) @PathVariable Long id,
+            @Parameter(description = "角色：ROLE_1-管理员，ROLE_3-普通用户", required = true) @RequestParam String utype,
+            jakarta.servlet.http.HttpServletRequest request) throws BusinessException {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        Account currentUser = accountService.getById(userId);
+        if (currentUser == null || !"ROLE_1".equals(currentUser.getUtype())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "仅管理员可操作");
+        }
+        if (id.equals(userId)) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "不能修改自己的角色");
+        }
+        boolean result = accountService.updateUserRole(id, utype);
+        if (!result) {
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "修改角色失败");
+        }
+        return new DTO<>(200, "角色已更新");
+    }
 }

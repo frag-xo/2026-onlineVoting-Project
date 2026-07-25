@@ -297,6 +297,25 @@ export const getWheelPrizes = () => {
   return request.get('/wheel/prizes')
 }
 
+// ========== 管理员用户管理 ==========
+
+// 36. 获取用户列表（管理员）
+export const getUserList = () => {
+  return request.get('/account/list')
+}
+
+// 37. 切换用户状态（管理员）
+export const toggleUserStatus = (id: number) => {
+  return request.put(`/account/${id}/status`)
+}
+
+// 38. 修改用户角色（管理员）
+export const updateUserRole = (id: number, utype: string) => {
+  return request.put(`/account/${id}/role`, null, {
+    params: { utype }
+  })
+}
+
 export const getPointsLog = () => {
   return request.get('/points/log')
 }

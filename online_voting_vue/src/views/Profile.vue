@@ -156,6 +156,55 @@
               </el-table>
               <el-empty v-if="pendingAuditList.length === 0" description="暂无待审核投票 🎉" />
             </el-tab-pane>
+
+            <!-- 用户管理（管理员） -->
+            <el-tab-pane label="用户管理" name="users" v-if="isAdmin">
+              <div class="audit-header">
+                <span class="audit-info">用户总数：{{ userList.length }}</span>
+                <el-button size="small" @click="loadUserList" :loading="userLoading">刷新</el-button>
+              </div>
+              <el-table :data="userList" stripe v-loading="userLoading">
+                <el-table-column prop="id" label="ID" width="60" />
+                <el-table-column prop="uname" label="用户名" />
+                <el-table-column prop="realname" label="真实姓名" />
+                <el-table-column prop="phoneNumber" label="手机号" width="130" />
+                <el-table-column prop="utype" label="角色" width="100">
+                  <template #default="{ row }">
+                    <el-tag :type="row.utype === 'ROLE_1' ? 'danger' : 'info'" size="small">
+                      {{ row.utype === 'ROLE_1' ? '管理员' : '普通用户' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="createTime" label="注册时间" width="180" />
+                <el-table-column prop="deleted" label="状态" width="80">
+                  <template #default="{ row }">
+                    <el-tag :type="row.deleted === 1 ? 'danger' : 'success'" size="small">
+                      {{ row.deleted === 1 ? '禁用' : '正常' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="200">
+                  <template #default="{ row }">
+                    <el-button
+                      size="small"
+                      :type="row.deleted === 1 ? 'success' : 'warning'"
+                      @click="toggleUserStatus(row.id)"
+                      :disabled="row.id === userId"
+                    >
+                      {{ row.deleted === 1 ? '启用' : '禁用' }}
+                    </el-button>
+                    <el-button
+                      size="small"
+                      :type="row.utype === 'ROLE_1' ? 'info' : 'danger'"
+                      @click="toggleUserRole(row.id, row.utype)"
+                      :disabled="row.id === userId"
+                    >
+                      {{ row.utype === 'ROLE_1' ? '取消管理' : '设为管理' }}
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-tab-pane>
           </el-tabs>
         </el-card>
       </el-col>
@@ -273,7 +322,10 @@ import {
   unfavoriteVote,
   getVoteList,
   getVoteDetail,
-  getPointsLog
+  getPointsLog,
+  getUserList,
+  toggleUserStatus as toggleUserStatusApi,
+  updateUserRole as updateUserRoleApi
 } from '@/api/vote'
 
 const router = useRouter()
@@ -582,6 +634,50 @@ const rejectVote = async (id: number) => {
   } catch {}
 }
 
+// -------------------- 管理员用户管理 --------------------
+const userLoading = ref(false)
+const userList = ref<any[]>([])
+
+const loadUserList = async () => {
+  userLoading.value = true
+  try {
+    const data = await getUserList()
+    userList.value = data || []
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载用户列表失败')
+  } finally {
+    userLoading.value = false
+  }
+}
+
+const toggleUserStatus = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确认要切换该用户的状态吗？', '操作确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await toggleUserStatusApi(id)
+    ElMessage.success('状态已更新')
+    await loadUserList()
+  } catch {}
+}
+
+const toggleUserRole = async (id: number, currentRole: string) => {
+  const newRole = currentRole === 'ROLE_1' ? 'ROLE_3' : 'ROLE_1'
+  const action = newRole === 'ROLE_1' ? '设为管理员' : '取消管理员'
+  try {
+    await ElMessageBox.confirm(`确认${action}吗？`, '操作确认', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'info'
+    })
+    await updateUserRoleApi(id, newRole)
+    ElMessage.success('角色已更新')
+    await loadUserList()
+  } catch {}
+}
+
 // -------------------- 跳转 --------------------
 const viewDetail = (id: number) => router.push(`/detail/${id}`)
 const viewResult = (id: number) => router.push(`/result/${id}`)
@@ -593,7 +689,8 @@ onMounted(async () => {
     loadFavorites(),
     loadPoints(),
     loadMyPublish(),
-    loadPendingAudits()
+    loadPendingAudits(),
+    loadUserList()
   ])
 
   window.addEventListener('storage', () => {

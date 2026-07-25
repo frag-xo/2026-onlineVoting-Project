@@ -1,5 +1,6 @@
 package org.mjc.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.mjc.entity.Account;
@@ -96,6 +97,57 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             return false;
         }
         return getByUname(uname) != null;
+    }
+
+    // ==================== 管理员用户管理 ====================
+
+    @Override
+    public List<Account> getAllUsers() {
+        LambdaQueryWrapper<Account> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByDesc(Account::getCreateTime);
+        return this.list(wrapper);
+    }
+
+    @Override
+    public boolean toggleUserStatus(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        Account account = this.getById(userId);
+        if (account == null) {
+            log.warn("切换用户状态失败：用户不存在 - userId={}", userId);
+            return false;
+        }
+        // 切换禁用状态：0→启用，1→禁用
+        int newStatus = (account.getDeleted() == null || account.getDeleted() == 0) ? 1 : 0;
+        account.setDeleted(newStatus);
+        account.setUpdateTime(LocalDateTime.now());
+        boolean result = this.updateById(account);
+        log.info("切换用户状态: userId={}, {}→{}", userId,
+                newStatus == 1 ? "启用" : "禁用",
+                newStatus == 1 ? "禁用" : "启用");
+        return result;
+    }
+
+    @Override
+    public boolean updateUserRole(Long userId, String utype) {
+        if (userId == null || !StringUtils.hasText(utype)) {
+            return false;
+        }
+        if (!"ROLE_1".equals(utype) && !"ROLE_3".equals(utype)) {
+            log.warn("修改角色失败：无效的角色类型 - {}", utype);
+            return false;
+        }
+        Account account = this.getById(userId);
+        if (account == null) {
+            log.warn("修改角色失败：用户不存在 - userId={}", userId);
+            return false;
+        }
+        account.setUtype(utype);
+        account.setUpdateTime(LocalDateTime.now());
+        boolean result = this.updateById(account);
+        log.info("修改用户角色: userId={}, role={}", userId, utype);
+        return result;
     }
 
     // ==================== 随机数据生成 ====================

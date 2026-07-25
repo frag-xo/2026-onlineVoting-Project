@@ -56,4 +56,25 @@ public interface AccountService extends IService<Account> {
      * @return 生成的用户列表
      */
     List<Account> generateRandomAccounts(int count);
+
+    /**
+     * 获取所有用户列表（管理员）
+     */
+    List<Account> getAllUsers();
+
+    /**
+     * 切换用户启用/禁用状态（管理员）
+     *
+     * @param userId 目标用户ID
+     * @return 操作后的状态：true-已启用，false-已禁用
+     */
+    boolean toggleUserStatus(Long userId);
+
+    /**
+     * 修改用户角色（管理员）
+     *
+     * @param userId 目标用户ID
+     * @param utype 角色：ROLE_1-管理员，ROLE_3-普通用户
+     */
+    boolean updateUserRole(Long userId, String utype);
 }
