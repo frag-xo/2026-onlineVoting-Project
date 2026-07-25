@@ -286,7 +286,8 @@ const loadVotes = async () => {
       status: item.statusText || (item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始'),
       deadline: item.endTime,
       totalVotes: item.totalVoters || 0,
-      options: item.options || []
+      options: item.options || [],
+      isRecommended: item.isRecommended
     }))
     refreshCharts()
   } catch (error: any) {
