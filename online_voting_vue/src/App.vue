@@ -218,6 +218,20 @@ onMounted(() => {
   checkLoginStatus()
   updatePageTitle()
   restoreTheme()
+
+  // 监听其他 Tab 的登录状态变化
+  window.addEventListener('storage', (e) => {
+    if (['token', 'utype', 'username'].includes(e.key || '')) {
+      const oldToken = localStorage.getItem('token')
+      // token 变了说明另一个 Tab 登录了其他账号
+      if (e.key === 'token' && e.oldValue && e.newValue && e.oldValue !== e.newValue) {
+        ElMessage.warning('检测到其他账号登录，当前页面已失效，请重新登录')
+        handleLogout()
+      } else {
+        checkLoginStatus()
+      }
+    }
+  })
 })
 
 watch(() => route.path, () => {
