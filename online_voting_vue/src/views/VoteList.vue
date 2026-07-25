@@ -157,7 +157,7 @@ const loadVotes = async () => {
     const params: any = {
       pageNum: 1,
       pageSize: 100,
-      title: searchKeyword.value // ✅ 传递搜索关键词
+      title: searchKeyword.value
     }
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
@@ -171,10 +171,18 @@ const loadVotes = async () => {
 
     const data = await getVoteList(params)
     const records = data.records || data || []
+    
+    // ✅ 状态映射表（基于数字 status）
+    const statusMap: Record<number, string> = {
+      0: '未开始',
+      1: '进行中',
+      2: '已结束'
+    }
+
     voteList.value = records.map((item: any) => ({
       id: item.id,
       title: item.title,
-      status: item.statusText || (item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始'),
+      status: statusMap[item.status] || '未知',  // 使用数字映射
       totalVotes: item.totalVoters || 0,
       deadline: item.endTime,
       options: item.options || [],
