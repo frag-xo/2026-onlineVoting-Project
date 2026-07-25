@@ -110,6 +110,9 @@
         </el-main>
       </el-container>
     </el-container>
+
+    <!-- AI 小助手悬浮按钮 -->
+    <AIChatButton />
   </div>
 </template>
 
@@ -117,6 +120,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AIChatButton from '@/components/AIChatButton.vue'
 import {
   House,
   Setting,

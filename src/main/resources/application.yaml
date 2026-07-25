@@ -101,3 +101,10 @@ server:
     context-path: /
   tomcat:
     uri-encoding: UTF-8
+
+# AI 助手配置
+ai:
+  enabled: true           # true-调用GLM API，false-模式匹配模式
+  api-key: 6d8593b714f247a3b94545c41f92f1f8.KQ8AbSnQDwWgjnIM
+  api-url: https://open.bigmodel.cn/api/paas/v4/chat/completions
+  model: glm-4-flash
