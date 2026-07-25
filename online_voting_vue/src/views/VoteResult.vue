@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
@@ -160,9 +160,10 @@ const goBack = () => {
   router.push('/')
 }
 
-onMounted(() => {
-  loadResult()
-  setTimeout(initChart, 300)
+onMounted(async () => {
+  await nextTick()
+  initChart()
+  await loadResult()
   startPolling()
 })
 
