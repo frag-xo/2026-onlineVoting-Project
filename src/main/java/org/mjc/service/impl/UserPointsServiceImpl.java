@@ -1,6 +1,7 @@
 package org.mjc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.mjc.entity.PointsLog;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 用户积分服务实现类
@@ -218,5 +220,14 @@ public class UserPointsServiceImpl extends ServiceImpl<UserPointsMapper, UserPoi
         }
         int userLevel = calculateLevel(userPoints.getTotalEarned());
         return userLevel >= requiredLevel;
+    }
+
+    @Override
+    public List<PointsLog> getPointsLog(Long userId, int pageNum, int pageSize) {
+        Page<PointsLog> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<PointsLog> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PointsLog::getUserId, userId);
+        wrapper.orderByDesc(PointsLog::getCreateTime);
+        return pointsLogMapper.selectPage(page, wrapper).getRecords();
     }
 }

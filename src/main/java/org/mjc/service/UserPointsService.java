@@ -1,7 +1,10 @@
 package org.mjc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.mjc.entity.PointsLog;
 import org.mjc.entity.UserPoints;
+
+import java.util.List;
 
 /**
  * 用户积分服务接口
@@ -90,4 +93,9 @@ public interface UserPointsService extends IService<UserPoints> {
      * 检查等级是否满足要求
      */
     boolean checkLevelRequirement(Long userId, int requiredLevel);
+
+    /**
+     * 获取用户积分变动记录（按时间倒序）
+     */
+    List<PointsLog> getPointsLog(Long userId, int pageNum, int pageSize);
 }

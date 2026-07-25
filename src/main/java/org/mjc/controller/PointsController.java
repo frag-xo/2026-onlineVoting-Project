@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mjc.dto.DTO;
 import org.mjc.entity.Account;
+import org.mjc.entity.PointsLog;
 import org.mjc.entity.UserPoints;
 import org.mjc.exception.BusinessException;
 import org.mjc.exception.ErrorCode;
@@ -100,6 +101,24 @@ public class PointsController {
 
         DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
         dto.setT(ranking);
+        return dto;
+    }
+
+    @Operation(summary = "获取积分变动记录", description = "获取当前用户的积分增减记录，按时间倒序")
+    @GetMapping("/log")
+    public DTO<List<PointsLog>> getPointsLog(
+            jakarta.servlet.http.HttpServletRequest request,
+            @Parameter(description = "页码", example = "1")
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @Parameter(description = "每页条数", example = "50")
+            @RequestParam(defaultValue = "50") Integer pageSize) {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        if (userId == null) {
+            return new DTO<>(401, "未登录");
+        }
+        List<PointsLog> list = userPointsService.getPointsLog(userId, pageNum, pageSize);
+        DTO<List<PointsLog>> dto = new DTO<>(200, "查询成功");
+        dto.setT(list);
         return dto;
     }
 }
