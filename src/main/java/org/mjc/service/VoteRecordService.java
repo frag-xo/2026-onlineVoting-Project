@@ -42,6 +42,14 @@ public interface VoteRecordService extends IService<VoteRecord> {
     List<VoteRecord> getRecordsByVoteId(Long voteId);
 
     /**
+     * 根据用户ID查询所有投票记录
+     *
+     * @param userId 用户ID
+     * @return 投票记录列表
+     */
+    List<VoteRecord> getRecordsByUserId(Long userId);
+
+    /**
      * 统计每个选项的投票数
      *
      * @param voteId 投票ID

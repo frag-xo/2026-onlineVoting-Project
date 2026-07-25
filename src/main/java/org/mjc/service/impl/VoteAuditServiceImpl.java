@@ -65,6 +65,9 @@ public class VoteAuditServiceImpl extends ServiceImpl<VoteAuditMapper, VoteAudit
         if (vote != null) {
             vote.setAuditStatus(status);
             vote.setAuditMsg(remark);
+            if (status == 1) {
+                vote.setStatus(1); // 审核通过，设为进行中
+            }
             vote.setUpdateTime(LocalDateTime.now());
             voteService.updateById(vote);
         }

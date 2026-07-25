@@ -74,6 +74,17 @@ public class VoteRecordServiceImpl extends ServiceImpl<VoteRecordMapper, VoteRec
     }
 
     @Override
+    public List<VoteRecord> getRecordsByUserId(Long userId) {
+        if (userId == null) {
+            return new java.util.ArrayList<>();
+        }
+        LambdaQueryWrapper<VoteRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(VoteRecord::getUserId, userId);
+        wrapper.orderByDesc(VoteRecord::getCreateTime);
+        return this.list(wrapper);
+    }
+
+    @Override
     public Map<Long, Long> countByOptionId(Long voteId) {
         if (voteId == null) {
             return new HashMap<>();

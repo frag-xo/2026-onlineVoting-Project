@@ -41,6 +41,9 @@ public class VoteResponseDTO {
     @Schema(description = "创建者ID")
     private Long creatorId;
 
+    @Schema(description = "创建者名称")
+    private String creatorName;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

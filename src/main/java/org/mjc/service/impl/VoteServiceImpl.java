@@ -8,11 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.mjc.dto.vote.VoteQueryDTO;
 import org.mjc.dto.vote.VoteResponseDTO;
 import org.mjc.dto.vote.VoteSaveDTO;
+import org.mjc.entity.Account;
 import org.mjc.entity.Vote;
 import org.mjc.entity.VoteOption;
 import org.mjc.exception.BusinessException;
 import org.mjc.exception.ErrorCode;
 import org.mjc.mapper.VoteMapper;
+import org.mjc.service.AccountService;
 import org.mjc.service.VoteOptionService;
 import org.mjc.service.VoteRecordService;
 import org.mjc.service.VoteService;
@@ -43,6 +45,9 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
 
     @Resource
     private VoteRecordService voteRecordService;
+
+    @Resource
+    private AccountService accountService;
 
     // ==================== 随机数据生成 ====================
 
@@ -162,6 +167,11 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
         Page<Vote> page = new Page<>(pageNum, pageSize);
 
         LambdaQueryWrapper<Vote> wrapper = new LambdaQueryWrapper<>();
+
+        // 默认只显示审核通过的投票（除非按创建者查询自己的）
+        if (queryDTO.getCreatorId() == null || queryDTO.getCreatorId() <= 0) {
+            wrapper.eq(Vote::getAuditStatus, 1);
+        }
 
         // 标题模糊查询
         if (StringUtils.hasText(queryDTO.getTitle())) {
@@ -409,7 +419,8 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
     @Override
     public List<Vote> getAllVotes() {
         LambdaQueryWrapper<Vote> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Vote::getDeleted, 0);  // 只查未删除的
+        wrapper.eq(Vote::getDeleted, 0);   // 只查未删除的
+        wrapper.eq(Vote::getAuditStatus, 1); // 只查审核通过的
         wrapper.orderByDesc(Vote::getCreateTime);
         return this.list(wrapper);
     }
@@ -458,6 +469,14 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
 
         VoteResponseDTO dto = new VoteResponseDTO();
         BeanUtils.copyProperties(vote, dto);
+
+        // 设置创建者名称
+        if (vote.getCreatorId() != null) {
+            Account creator = accountService.getById(vote.getCreatorId());
+            if (creator != null) {
+                dto.setCreatorName(creator.getUname());
+            }
+        }
 
         // 设置状态文本
         dto.setStatusText(getStatusText(vote.getStatus()));

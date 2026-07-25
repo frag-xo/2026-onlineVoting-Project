@@ -297,7 +297,7 @@ public class VoteController {
         Long userId = (Long) request.getAttribute("currentUserId");
 
         // 查询用户的投票记录
-        List<VoteRecord> records = voteRecordService.getRecordsByVoteId(null); // 需要修改为按用户查询
+        List<VoteRecord> records = voteRecordService.getRecordsByUserId(userId);
 
         List<Map<String, Object>> history = new java.util.ArrayList<>();
         for (VoteRecord record : records) {
@@ -370,8 +370,9 @@ public class VoteController {
             throw new BusinessException(ErrorCode.VOTE_CREATE_FAILED);
         }
 
-        // 设置为待审核状态
+        // 设置为待审核状态（不对外展示）
         vote.setAuditStatus(0); // 待审核
+        vote.setStatus(0);      // 未开始（审核通过后才变为进行中）
         vote.setCreatorId(userId);
         voteService.updateById(vote);
 
