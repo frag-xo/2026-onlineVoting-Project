@@ -148,9 +148,9 @@
                 </el-table-column>
                 <el-table-column label="操作" width="200">
                   <template #default="{ row }">
-                    <el-button size="small" type="success" @click="approveVote(row.id)">通过</el-button>
-                    <el-button size="small" type="danger" @click="rejectVote(row.id)">拒绝</el-button>
-                    <el-button size="small" @click="viewDetail(row.id)">预览</el-button>
+                    <el-button size="small" type="success" @click="approveVote(row.voteId)">通过</el-button>
+                    <el-button size="small" type="danger" @click="rejectVote(row.voteId)">拒绝</el-button>
+                    <el-button size="small" @click="viewDetail(row.voteId)">预览</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -424,21 +424,18 @@ const loadPoints = async () => {
 const loadMyPublish = async () => {
   publishLoading.value = true
   try {
-    // 1. 先获取投票列表（只获取 ID 和标题）
+    // 直接使用 getVoteList 返回的数据（VoteResponseDTO 已包含所有字段）
     const data = await getVoteList({
       pageNum: 1,
       pageSize: 100,
       creatorId: userId.value
     })
     const records = data.records || data || []
-    
-    // 2. 对每个投票调用 getVoteDetail 获取完整信息（含 auditStatus）
-    const detailPromises = records.map((item: any) => getVoteDetail(item.id))
-    const details = await Promise.all(detailPromises)
-    
-    myPublish.value = details.map((item: any) => ({
+
+    myPublish.value = records.map((item: any) => ({
       id: item.id,
       title: item.title,
+      creatorName: item.creatorName,
       auditStatus: item.auditStatus === 0 ? '待审核' : item.auditStatus === 1 ? '已通过' : '已拒绝',
       statusText: item.statusText || (item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始'),
       createTime: item.createTime
