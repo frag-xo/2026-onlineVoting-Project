@@ -272,21 +272,23 @@ const levelInfo = computed(() => {
   return current
 })
 
+// 获取积分规则（与截图一致）
 const earnRules = [
-  { action: '注册账号', points: '+20', limit: '仅一次' },
-  { action: '参与投票', points: '+5', limit: '20次' },
-  { action: '发表评论', points: '+2', limit: '10次' },
-  { action: '评论被点赞', points: '+1', limit: '无上限' },
-  { action: '收藏投票', points: '+3', limit: '10次' },
-  { action: '发布的投票被投票', points: '+1', limit: '无上限' },
-  { action: '每日登录', points: '+1', limit: '1次/天' },
-  { action: '投票被管理员推荐', points: '+50', limit: '无上限' }
+  { action: '注册', points: '+20', limit: '一次性' },
+  { action: '每日登录', points: '+10', limit: '每天1次' },
+  { action: '参与投票', points: '+5', limit: '每天最多20次' },
+  { action: '评论', points: '+2', limit: '每天最多10次' },
+  { action: '评论被点赞', points: '+1', limit: '无限制' },
+  { action: '收藏投票', points: '+3', limit: '最多10次' },
+  { action: '发布投票被参与', points: '+1', limit: '无限制' },
+  { action: '投票被推荐', points: '+50', limit: '无限制' }
 ]
 
+// 消费积分规则（与截图一致）
 const spendRules = [
-  { action: '发布投票（普通用户）', points: '-10', note: '管理员发布免费' },
-  { action: '置顶自己的投票（24h）', points: '-50', note: '投票置顶展示' },
-  { action: '发布匿名投票', points: '-5', note: '匿名发布' }
+  { action: '发布投票', points: '-10', note: '普通用户发布消耗' },
+  { action: '置顶投票', points: '-50', note: '投票置顶展示' },
+  { action: '匿名投票', points: '-5', note: '匿名发布' }
 ]
 
 const levelRules = [

@@ -253,3 +253,23 @@ export const getMyPoints = () => {
 export const getGroupList = () => {
   return request.get('/vote-group/list')
 }
+
+// 获取推荐投票列表
+export const getRecommendedVotes = () => {
+  return request.get('/vote/recommended')
+}
+
+// 推荐或取消推荐投票（管理员）
+export const recommendVote = (voteId: number) => {
+  return request.put(`/vote/recommend/${voteId}`)
+}
+
+// 点赞或取消点赞
+export const likeVote = (voteId: number) => {
+  return request.post('/like', null, { params: { voteId } })
+}
+
+// 获取点赞数
+export const getLikeCount = (voteId: number) => {
+  return request.get(`/like/count/${voteId}`)
+}

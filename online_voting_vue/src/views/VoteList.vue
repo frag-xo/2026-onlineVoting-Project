@@ -69,6 +69,14 @@
             <div class="card-actions">
               <el-button class="action-btn primary" size="small" @click="goDetail(item.id)">投票</el-button>
               <el-button class="action-btn ghost" size="small" @click="goResult(item.id)">结果</el-button>
+              <el-button
+                class="action-btn like-btn"
+                size="small"
+                :type="item.isLiked ? 'primary' : 'default'"
+                @click="toggleLike(item)"
+              >
+                👍 {{ item.likeCount || 0 }}
+              </el-button>
               <el-dropdown trigger="click" @command="(cmd: string) => handleShare(item.id, cmd)">
                 <el-button class="action-btn share-btn" size="small">
                   <span style="font-size:15px;line-height:1;">⋯</span>
@@ -101,7 +109,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getVoteList } from '@/api/vote'
+import { getVoteList, likeVote } from '@/api/vote'
 import request from '@/api/index'
 
 const router = useRouter()
@@ -116,11 +124,9 @@ const filterTabs = [
   { label: '已结束', value: 2 }
 ]
 
-// 统计计算
 const activeCount = computed(() => voteList.value.filter(v => v.status === '进行中').length)
 const endedCount = computed(() => voteList.value.filter(v => v.status === '已结束').length)
 
-// ✅ 接口调用：getVoteList 是 POST 请求，参数在 body 中
 const loadVotes = async () => {
   loading.value = true
   try {
@@ -147,12 +153,24 @@ const loadVotes = async () => {
       status: item.statusText || (item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始'),
       totalVotes: item.totalVoters || 0,
       deadline: item.endTime,
-      options: item.options || []
+      options: item.options || [],
+      likeCount: 0,
+      isLiked: false
     }))
   } catch (error: any) {
     ElMessage.error(error.message || '加载投票列表失败')
   } finally {
     loading.value = false
+  }
+}
+
+const toggleLike = async (item: any) => {
+  try {
+    await likeVote(item.id)
+    item.isLiked = !item.isLiked
+    item.likeCount = (item.likeCount || 0) + (item.isLiked ? 1 : -1)
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
@@ -448,6 +466,15 @@ onMounted(() => {
   border-color: #4361ee !important;
   color: #4361ee !important;
   background: #f0f2ff !important;
+}
+
+.like-btn {
+  flex: 0.8 !important;
+}
+.like-btn.el-button--primary {
+  background: #409eff !important;
+  color: #fff !important;
+  border-color: #409eff !important;
 }
 
 .qr-container {

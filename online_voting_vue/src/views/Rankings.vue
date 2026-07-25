@@ -2,6 +2,7 @@
   <div class="rankings-container">
     <h2>🏆 投票排行</h2>
     <el-tabs v-model="rankType">
+      <!-- 热门投票 -->
       <el-tab-pane label="热门投票" name="hot">
         <el-table :data="hotList" stripe v-loading="loading">
           <el-table-column label="排名" width="80">
@@ -25,6 +26,8 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
+
+      <!-- 最新发布 -->
       <el-tab-pane label="最新发布" name="newest">
         <el-table :data="newestList" stripe v-loading="loading">
           <el-table-column prop="title" label="投票标题" />
@@ -36,6 +39,32 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
+
+      <!-- 推荐投票 -->
+      <el-tab-pane label="推荐投票" name="recommended">
+        <el-table :data="recommendList" stripe v-loading="loading">
+          <el-table-column label="排名" width="80">
+            <template #default="{ $index }">
+              <el-tag :type="$index < 3 ? 'danger' : 'info'">{{ $index + 1 }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" label="投票标题" />
+          <el-table-column prop="totalVotes" label="参与人数" width="120" />
+          <el-table-column prop="statusText" label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.statusText === '进行中' ? 'success' : row.statusText === '已结束' ? 'info' : 'warning'">
+                {{ row.statusText }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="120">
+            <template #default="{ row }">
+              <el-button size="small" @click="goDetail(row.voteId || row.id)">参与</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty v-if="!loading && recommendList.length === 0" description="暂无推荐投票，管理员可推荐优质投票" />
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
@@ -44,7 +73,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getVoteRanking, getVoteList } from '@/api/vote'
+import { getVoteRanking, getVoteList, getRecommendedVotes } from '@/api/vote'
 
 const router = useRouter()
 const rankType = ref('hot')
@@ -52,13 +81,12 @@ const loading = ref(false)
 
 const hotList = ref<any[]>([])
 const newestList = ref<any[]>([])
+const recommendList = ref<any[]>([])
 
 // 加载热门排行
 const loadHotRanking = async () => {
-  loading.value = true
   try {
     const data = await getVoteRanking(10)
-    // 后端返回格式：{ voteId, title, totalVotes, status, endTime }
     hotList.value = (data || []).map((item: any) => ({
       voteId: item.voteId || item.id,
       id: item.voteId || item.id,
@@ -70,8 +98,6 @@ const loadHotRanking = async () => {
     }))
   } catch (error: any) {
     ElMessage.error(error.message || '加载排行失败')
-  } finally {
-    loading.value = false
   }
 }
 
@@ -90,6 +116,29 @@ const loadNewest = async () => {
   }
 }
 
+// 加载推荐投票（调用后端推荐接口）
+const loadRecommended = async () => {
+  try {
+    const data = await getRecommendedVotes()
+    recommendList.value = data.map((item: any) => ({
+      voteId: item.id,
+      id: item.id,
+      title: item.title,
+      totalVotes: item.totalVoters || 0,
+      status: item.status,
+      statusText: item.status === 1 ? '进行中' : item.status === 2 ? '已结束' : '未开始',
+      endTime: item.endTime
+    }))
+  } catch (error: any) {
+    console.warn('加载推荐投票失败', error.message)
+    // 如果后端推荐接口未实现，可降级复用热门数据（取消下面注释）
+    // try {
+    //   const fallback = await getVoteRanking(10)
+    //   recommendList.value = fallback.map(...)
+    // } catch (e) {}
+  }
+}
+
 const goDetail = (id: number) => {
   if (!id) {
     ElMessage.warning('投票ID无效')
@@ -99,8 +148,10 @@ const goDetail = (id: number) => {
 }
 
 onMounted(() => {
-  loadHotRanking()
-  loadNewest()
+  loading.value = true
+  Promise.all([loadHotRanking(), loadNewest(), loadRecommended()]).finally(() => {
+    loading.value = false
+  })
 })
 </script>
 

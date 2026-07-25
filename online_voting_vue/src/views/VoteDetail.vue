@@ -16,6 +16,13 @@
             >
               {{ isFav ? '已收藏' : '收藏' }}
             </el-button>
+            <el-button
+              :type="isLiked ? 'primary' : 'default'"
+              @click="toggleLike"
+              style="margin-left:10px;"
+            >
+              👍 {{ likeCount }}
+            </el-button>
           </div>
         </div>
       </template>
@@ -131,7 +138,9 @@ import {
   favoriteVote,
   unfavoriteVote,
   getComments,
-  addComment
+  addComment,
+  likeVote,
+  getLikeCount
 } from '@/api/vote'
 
 const router = useRouter()
@@ -190,6 +199,32 @@ const checkFavStatus = async () => {
     isFav.value = data === true || data === 1
   } catch (error: any) {
     console.warn('检查收藏状态失败', error.message)
+  }
+}
+
+// 点赞
+const isLiked = ref(false)
+const likeCount = ref(0)
+
+const loadLikeCount = async () => {
+  try {
+    likeCount.value = await getLikeCount(voteId)
+  } catch (error) {
+    console.warn('加载点赞数失败', error)
+  }
+}
+
+const toggleLike = async () => {
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    return
+  }
+  try {
+    await likeVote(voteId)
+    isLiked.value = !isLiked.value
+    likeCount.value += isLiked.value ? 1 : -1
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败')
   }
 }
 
@@ -264,12 +299,10 @@ const submitSurvey = () => {
   surveyScore.value = 0
 }
 
-// ✅ 关键修复：loadDetail 从 data.vote 和 data.options 正确取值
 const loadDetail = async () => {
   loading.value = true
   try {
     const data = await getVoteDetail(voteId)
-    // getVoteDetail 返回 { vote: {...}, options: [{id, optionText, count}] }
     const voteInfo = data.vote || data
     const options = data.options || []
     vote.value = {
@@ -291,7 +324,6 @@ const loadDetail = async () => {
   }
 }
 
-// ✅ 关键修复：验证码字段名从 data.image 读取
 const refreshCaptcha = async () => {
   try {
     const data = await getCaptcha()
@@ -302,7 +334,6 @@ const refreshCaptcha = async () => {
   }
 }
 
-// 提交投票
 const handleSubmit = async () => {
   if (!selectedOption.value) {
     ElMessage.warning('请选择一个选项')
@@ -346,6 +377,7 @@ onMounted(() => {
   refreshCaptcha()
   checkFavStatus()
   loadComments()
+  loadLikeCount()
   timer = setInterval(updateCountdown, 10000)
 })
 

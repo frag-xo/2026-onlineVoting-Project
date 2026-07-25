@@ -66,19 +66,26 @@
         </el-table-column>
         <el-table-column prop="deadline" label="截止时间" width="200" />
         <el-table-column prop="totalVotes" label="参与人数" width="100" />
-        <el-table-column label="操作" width="280">
-          <template #default="{ row }">
-            <el-button size="small" @click="editVote(row)">编辑</el-button>
-            <el-button
-              size="small"
-              :type="row.status === '进行中' ? 'warning' : 'success'"
-              @click="toggleVoteStatus(row)"
-            >
-              {{ row.status === '进行中' ? '暂停' : '启用' }}
-            </el-button>
-            <el-button size="small" type="danger" @click="handleDeleteVote(row.id)">删除</el-button>
-          </template>
-        </el-table-column>
+        <el-table-column label="操作" width="360">
+  <template #default="{ row }">
+    <el-button size="small" @click="editVote(row)">编辑</el-button>
+    <el-button
+      size="small"
+      :type="row.status === '进行中' ? 'warning' : 'success'"
+      @click="toggleVoteStatus(row)"
+    >
+      {{ row.status === '进行中' ? '暂停' : '启用' }}
+    </el-button>
+    <el-button
+      size="small"
+      :type="row.isRecommended === 1 ? 'warning' : 'success'"
+      @click="toggleRecommend(row)"
+    >
+      {{ row.isRecommended === 1 ? '取消推荐' : '推荐' }}
+    </el-button>
+    <el-button size="small" type="danger" @click="handleDeleteVote(row.id)">删除</el-button>
+  </template>
+</el-table-column>
       </el-table>
     </el-card>
 
@@ -173,6 +180,18 @@ import type { FormInstance, FormRules } from 'element-plus'
 import * as echarts from 'echarts'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
 import { useRouter } from 'vue-router'
+import { recommendVote } from '@/api/vote'
+
+const toggleRecommend = async (row: any) => {
+  try {
+    await recommendVote(row.id)
+    row.isRecommended = row.isRecommended === 1 ? 0 : 1
+    ElMessage.success(row.isRecommended === 1 ? '推荐成功' : '已取消推荐')
+  await loadVotes() // 刷新列表，确保状态更新
+  } catch (error: any) {
+    ElMessage.error(error.message || '操作失败')
+  }
+}
 const router = useRouter()
 onMounted(() => {
   const utype = localStorage.getItem('utype')
