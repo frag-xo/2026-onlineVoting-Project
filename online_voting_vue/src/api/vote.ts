@@ -273,3 +273,24 @@ export const likeVote = (voteId: number) => {
 export const getLikeCount = (voteId: number) => {
   return request.get(`/like/count/${voteId}`)
 }
+
+// ========== 转盘抽奖 ==========
+
+// 抽奖
+export const wheelDraw = (voteId: number) => {
+  return request.post('/wheel/draw', null, {
+    params: { voteId }
+  })
+}
+
+// 检查是否已抽奖
+export const checkWheelDrawn = (voteId: number) => {
+  return request.get('/wheel/check', {
+    params: { voteId }
+  })
+}
+
+// 获取奖品列表
+export const getWheelPrizes = () => {
+  return request.get('/wheel/prizes')
+}

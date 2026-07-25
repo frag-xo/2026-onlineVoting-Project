@@ -99,7 +99,7 @@ public class AccountController {
         onlineUserService.userOnline(account.getId(), account.getUname());
 
         // 每日登录积分（+10）
-        //userPointsService.addDailyLoginPoints(account.getId());
+        userPointsService.addDailyLoginPoints(account.getId());
 
         // 返回 token 和用户信息
         Map<String, Object> result = new HashMap<>();

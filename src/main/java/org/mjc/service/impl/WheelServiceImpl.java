@@ -46,17 +46,29 @@ public class WheelServiceImpl extends ServiceImpl<WheelPrizeMapper, WheelPrize> 
 
     @Override
     public Map<String, Object> draw(Long userId, Long voteId) {
-        // 检查是否已抽奖
+        // ===== 检查是否已抽奖 =====
         if (hasDrawn(userId, voteId)) {
             log.warn("用户已抽奖: userId={}, voteId={}", userId, voteId);
-            return null;
+            // ✅ 不再返回 null，而是返回一个表示已抽奖的结果
+            Map<String, Object> result = new HashMap<>();
+            result.put("alreadyDrawn", true);
+            result.put("points", 0);
+            result.put("prizeName", "已抽过奖");
+            result.put("message", "您已抽过奖");
+            return result;
         }
 
         // 获取所有奖品
         List<WheelPrize> prizes = getActivePrizes();
         if (prizes.isEmpty()) {
             log.warn("没有可用的奖品");
-            return null;
+            // ✅ 返回默认结果，不返回 null
+            Map<String, Object> result = new HashMap<>();
+            result.put("alreadyDrawn", false);
+            result.put("points", 0);
+            result.put("prizeName", "暂无奖品");
+            result.put("message", "暂无可用奖品");
+            return result;
         }
 
         // 根据概率抽奖
@@ -78,6 +90,7 @@ public class WheelServiceImpl extends ServiceImpl<WheelPrizeMapper, WheelPrize> 
 
         // 返回结果
         Map<String, Object> result = new HashMap<>();
+        result.put("alreadyDrawn", false);
         result.put("prizeId", selectedPrize.getId());
         result.put("prizeName", selectedPrize.getName());
         result.put("points", selectedPrize.getPoints());
