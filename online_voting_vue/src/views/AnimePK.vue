@@ -38,7 +38,13 @@
             >
               <div class="card-glow"></div>
               <div class="card-img-wrap">
-                <img :src="fighter.imageUrl" :alt="fighter.name" loading="lazy" />
+                <div
+                  class="card-placeholder"
+                  :style="{ background: 'linear-gradient(135deg, ' + getColors(fighter.id).a + ', ' + getColors(fighter.id).b + ')' }"
+                >
+                  <span class="card-letter">{{ fighter.name.charAt(0) }}</span>
+                  <span class="card-subname">{{ fighter.name.substring(1) }}</span>
+                </div>
                 <div class="card-shine"></div>
               </div>
               <div class="card-name">{{ fighter.name }}</div>
@@ -81,7 +87,9 @@
               <span v-else-if="i === 2" class="medal">🥉</span>
               <span v-else class="rank-idx">{{ i + 1 }}</span>
             </div>
-            <img class="rank-img" :src="item.imageUrl" :alt="item.name" />
+            <div class="rank-img" :style="getCardStyle(item.id)">
+              <span class="rank-letter">{{ item.name?.charAt(0) }}</span>
+            </div>
             <div class="rank-info">
               <span class="rank-name">{{ item.name }}</span>
               <span class="rank-stat">胜率 {{ item.winRate }}% / ELO {{ item.eloRating }}</span>
@@ -130,6 +138,35 @@ const entryAnim = ref(true)
 const currentPair = ref<any[]>([])
 const chosenId = ref<number | null>(null)
 const ranking = ref<any[]>([])
+
+// 31套渐变色方案
+const colorPalette = [
+  { a: '#667eea', b: '#764ba2' }, { a: '#f093fb', b: '#f5576c' },
+  { a: '#4facfe', b: '#00f2fe' }, { a: '#43e97b', b: '#38f9d7' },
+  { a: '#fa709a', b: '#fee140' }, { a: '#a18cd1', b: '#fbc2eb' },
+  { a: '#fccb90', b: '#d57eeb' }, { a: '#e0c3fc', b: '#8ec5fc' },
+  { a: '#f5576c', b: '#ff6f00' }, { a: '#667eea', b: '#43e97b' },
+  { a: '#ff0844', b: '#ffb199' }, { a: '#00b4db', b: '#0083b0' },
+  { a: '#b224ef', b: '#7579ff' }, { a: '#fc5c7d', b: '#6a82fb' },
+  { a: '#0ba360', b: '#3cba92' }, { a: '#2af598', b: '#009efd' },
+  { a: '#ee9ca7', b: '#ffdde1' }, { a: '#c94b4b', b: '#4b134f' },
+  { a: '#23074d', b: '#cc5333' }, { a: '#0b8793', b: '#360033' },
+  { a: '#1e9600', b: '#fff200' }, { a: '#00b09b', b: '#96c93d' },
+  { a: '#d4fc79', b: '#96e6a1' }, { a: '#fbab7e', b: '#f7ce68' },
+  { a: '#85ffbd', b: '#fffb7d' }, { a: '#a1c4fd', b: '#c2e9fb' },
+  { a: '#667db6', b: '#0082c8' }, { a: '#f2709c', b: '#ff9472' },
+  { a: '#a8edea', b: '#fed6e3' }, { a: '#5ee7df', b: '#b490ca' },
+  { a: '#d299c2', b: '#fef9d7' },
+]
+
+const getColors = (id: number) => {
+  return colorPalette[((id - 1) % colorPalette.length)]
+}
+
+const getCardStyle = (id: number) => {
+  const c = getColors(id)
+  return { background: 'linear-gradient(135deg, ' + c.a + ', ' + c.b + ')' }
+}
 
 const loadPair = async () => {
   loading.value = true
@@ -362,7 +399,39 @@ onMounted(() => {
   transition: transform 0.5s ease;
 }
 
-.vs-card:hover .card-img-wrap img {
+.card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.5s ease;
+}
+
+.card-letter {
+  font-size: 52px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.card-subname {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+  padding: 0 8px;
+  line-height: 1.3;
+  max-height: 28px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.vs-card:hover .card-placeholder {
   transform: scale(1.06);
 }
 
@@ -485,9 +554,17 @@ onMounted(() => {
   width: 44px;
   height: 62px;
   border-radius: 8px;
-  object-fit: cover;
-  background: #14141f;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-letter {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.2);
 }
 
 .rank-info {
