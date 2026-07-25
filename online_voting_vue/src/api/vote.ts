@@ -316,6 +316,35 @@ export const updateUserRole = (id: number, utype: string) => {
   })
 }
 
+// ========== 动漫PK对战 ==========
+
+// 39. 获取所有动漫
+export const getAnimeList = () => {
+  return request.get('/anime/list')
+}
+
+// 40. 获取随机PK对战
+export const getAnimePair = () => {
+  return request.get('/anime/pair')
+}
+
+// 41. 提交对战结果
+export const submitAnimeBattle = (winnerId: number, loserId: number) => {
+  return request.post('/anime/battle', null, {
+    params: { winnerId, loserId }
+  })
+}
+
+// 42. 获取我的动漫排行
+export const getAnimeRanking = () => {
+  return request.get('/anime/ranking')
+}
+
+// 43. 获取对战历史
+export const getAnimeHistory = (limit = 20) => {
+  return request.get('/anime/history', { params: { limit } })
+}
+
 export const getPointsLog = () => {
   return request.get('/points/log')
 }

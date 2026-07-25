@@ -77,6 +77,7 @@ import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import { login } from '@/api/vote'
+import { setAuth, clearAuth } from '@/utils/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -137,11 +138,11 @@ const handleLogin = async () => {
         }
       }
 
-      // 保存用户信息
-      localStorage.setItem('token', token)
-      localStorage.setItem('userId', String(userData.id || ''))
-      localStorage.setItem('username', userData.uname || '')
-      localStorage.setItem('utype', utype)
+      // 保存用户信息（sessionStorage 各 Tab 独立）
+      setAuth('token', token)
+      setAuth('userId', String(userData.id || ''))
+      setAuth('username', userData.uname || '')
+      setAuth('utype', utype)
 
       ElMessage.success(loginType.value === 'admin' ? '管理员登录成功！' : '登录成功！')
 

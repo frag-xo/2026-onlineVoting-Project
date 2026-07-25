@@ -132,6 +132,7 @@ import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { getVoteList, likeVote } from '@/api/vote'
 import request from '@/api/index'
+import { getToken } from '@/utils/auth'
 
 const router = useRouter()
 const voteList = ref<any[]>([])
@@ -234,7 +235,7 @@ const handleShare = async (id: number, cmd: string) => {
     }
   } else if (cmd === 'qrcode') {
     try {
-      const token = localStorage.getItem('token')
+      const token = getToken()
       const resp = await fetch(`http://localhost:8080/api/vote/share/qrcode/${id}?baseUrl=${encodeURIComponent(baseUrl)}&width=300&height=300`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })

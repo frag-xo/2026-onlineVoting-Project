@@ -86,11 +86,12 @@ import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { createVote, submitVoteForAudit } from '@/api/vote'
+import { getUtype, getUserId } from '@/utils/auth'
 
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
 
-const isAdmin = ref(localStorage.getItem('utype') === 'ROLE_1')
+const isAdmin = ref(getUtype() === 'ROLE_1')
 
 const form = reactive({
   title: '',
@@ -134,7 +135,7 @@ const handleSubmit = async () => {
       submitting.value = true
       try {
         const filteredOptions = form.options.filter(item => item.trim() !== '')
-        const userId = Number(localStorage.getItem('userId') || 0)
+        const userId = getUserId()
 
         if (isAdmin.value) {
           // 管理员直接发布

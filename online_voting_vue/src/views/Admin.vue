@@ -181,6 +181,7 @@ import * as echarts from 'echarts'
 import { createVote, updateVote, deleteVote, endVote, getVoteList, getDashboard } from '@/api/vote'
 import { useRouter } from 'vue-router'
 import { recommendVote } from '@/api/vote'
+import { getUtype, getUserId } from '@/utils/auth'
 
 const toggleRecommend = async (row: any) => {
   try {
@@ -194,7 +195,7 @@ const toggleRecommend = async (row: any) => {
 }
 const router = useRouter()
 onMounted(() => {
-  const utype = localStorage.getItem('utype')
+  const utype = getUtype()
   if (utype !== 'ROLE_1') {
     ElMessage.warning('您没有管理员权限')
     router.push('/')
@@ -249,7 +250,7 @@ const handlePublish = async () => {
       publishing.value = true
       try {
         const filteredOptions = form.options.filter(item => item.trim() !== '')
-        const userId = Number(localStorage.getItem('userId') || 0)
+        const userId = getUserId()
         await createVote({
           title: form.title,
           description: '',

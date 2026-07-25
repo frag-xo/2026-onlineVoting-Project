@@ -32,6 +32,10 @@
             <el-icon><UserFilled /></el-icon>
             <template #title>个人中心</template>
           </el-menu-item>
+          <el-menu-item index="/anime-pk">
+            <el-icon><StarFilled /></el-icon>
+            <template #title>动漫PK</template>
+          </el-menu-item>
           <el-menu-item index="/admin" v-if="isLoggedIn && isAdmin">
             <el-icon><Setting /></el-icon>
             <template #title>后台管理</template>
@@ -121,12 +125,14 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AIChatButton from '@/components/AIChatButton.vue'
+import { getToken, getUsername, getUtype, isAdmin as checkIsAdmin, clearAuth } from '@/utils/auth'
 import {
   House,
   Setting,
   DataAnalysis,
   TrendCharts,
   EditPen,
+  StarFilled,
   UserFilled,
   DArrowLeft,
   DArrowRight,
@@ -166,12 +172,11 @@ const updatePageTitle = () => {
 }
 
 const checkLoginStatus = () => {
-  const token = localStorage.getItem('token')
+  const token = getToken()
   if (token) {
     isLoggedIn.value = true
-    username.value = localStorage.getItem('username') || '用户'
-    const utype = localStorage.getItem('utype')
-    isAdmin.value = utype === 'ROLE_1'
+    username.value = getUsername()
+    isAdmin.value = checkIsAdmin()
   } else {
     isLoggedIn.value = false
     username.value = ''
@@ -219,17 +224,11 @@ onMounted(() => {
   updatePageTitle()
   restoreTheme()
 
-  // 监听其他 Tab 的登录状态变化
+  // 监听其他 Tab 的登录状态变化（localStorage 跨 Tab 共享）
   window.addEventListener('storage', (e) => {
-    if (['token', 'utype', 'username'].includes(e.key || '')) {
-      const oldToken = localStorage.getItem('token')
-      // token 变了说明另一个 Tab 登录了其他账号
-      if (e.key === 'token' && e.oldValue && e.newValue && e.oldValue !== e.newValue) {
-        ElMessage.warning('检测到其他账号登录，当前页面已失效，请重新登录')
-        handleLogout()
-      } else {
-        checkLoginStatus()
-      }
+    if (e.key === 'token' && e.oldValue && e.newValue && e.oldValue !== e.newValue) {
+      ElMessage.warning('检测到其他账号登录，当前页面已失效，请重新登录')
+      handleLogout()
     }
   })
 })
@@ -249,10 +248,7 @@ const goRegister = () => router.push('/register')
 const goAdmin = () => router.push('/admin')
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userId')
-  localStorage.removeItem('username')
-  localStorage.removeItem('utype')
+  clearAuth()
   isLoggedIn.value = false
   isAdmin.value = false
   ElMessage.success('已退出登录')

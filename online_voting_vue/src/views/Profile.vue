@@ -327,6 +327,7 @@ import {
   toggleUserStatus as toggleUserStatusApi,
   updateUserRole as updateUserRoleApi
 } from '@/api/vote'
+import { getToken, getAuth, setAuth, getUserId as getUserIdAuth, getUsername as getUsernameAuth, isAdmin as checkIsAdmin, clearAuth } from '@/utils/auth'
 
 const router = useRouter()
 const loading = ref(false)
@@ -335,10 +336,10 @@ const publishLoading = ref(false)
 const auditLoading = ref(false)
 const activeTab = ref('records')
 
-const userId = ref(Number(localStorage.getItem('userId') || 0))
-const username = ref(localStorage.getItem('username') || '用户')
-const isAdmin = ref(localStorage.getItem('utype') === 'ROLE_1')
-const avatarUrl = ref(localStorage.getItem('avatar') || '')
+const userId = ref(getUserIdAuth())
+const username = ref(getUsernameAuth())
+const isAdmin = ref(checkIsAdmin())
+const avatarUrl = ref(getAuth('avatar'))
 
 const displayName = computed(() => username.value)
 
@@ -531,7 +532,7 @@ const confirmEditName = async () => {
   try {
     await updateUsername(newName.value.trim())
     username.value = newName.value.trim()
-    localStorage.setItem('username', username.value)
+    setAuth('username', username.value)
     window.dispatchEvent(new Event('storage'))
     editNameDialogVisible.value = false
     ElMessage.success('昵称修改成功！')
@@ -583,7 +584,7 @@ const saveAvatar = async () => {
     const data = await uploadAvatar(file)
     const avatarUrlStr = data.avatar || data.url || data
     avatarUrl.value = avatarUrlStr
-    localStorage.setItem('avatar', avatarUrlStr)
+    setAuth('avatar', avatarUrlStr)
     avatarPreviewVisible.value = false
     ElMessage.success('头像更换成功！')
   } catch (error: any) {
@@ -694,9 +695,9 @@ onMounted(async () => {
   ])
 
   window.addEventListener('storage', () => {
-    username.value = localStorage.getItem('username') || '用户'
-    avatarUrl.value = localStorage.getItem('avatar') || ''
-    isAdmin.value = localStorage.getItem('utype') === 'ROLE_1'
+    username.value = getUsernameAuth()
+    avatarUrl.value = getAuth('avatar') || ''
+    isAdmin.value = checkIsAdmin()
   })
 })
 </script>

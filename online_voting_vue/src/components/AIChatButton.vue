@@ -1,56 +1,85 @@
 <template>
-  <div class="ai-chat-container">
-    <!-- 悬浮按钮 -->
-    <el-button
-      class="ai-float-btn"
-      :class="{ 'is-active': visible }"
+  <div class="ai-chat-root">
+    <!-- 悬浮触发按钮 -->
+    <button
+      class="ai-trigger"
+      :class="{ 'is-open': visible }"
       @click="toggleChat"
-      circle
+      aria-label="AI 助手"
     >
-      <span class="btn-icon">{{ visible ? '✕' : '🤖' }}</span>
-    </el-button>
+      <svg v-if="!visible" class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1.27A7 7 0 0 1 14 23h-4a7 7 0 0 1-5.73-3H3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+        <path d="M9 15v1"/>
+        <path d="M15 15v1"/>
+      </svg>
+      <svg v-else class="trigger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
 
-    <!-- 聊天窗口 -->
-    <transition name="chat-slide">
-      <div v-if="visible" class="ai-chat-window">
-        <div class="chat-header">
-          <div class="header-left">
-            <span class="header-icon">🤖</span>
-            <span class="header-title">AI 小助手</span>
+    <!-- 聊天面板 -->
+    <transition name="panel">
+      <div v-if="visible" class="ai-panel">
+        <!-- 头部 -->
+        <div class="panel-head">
+          <div class="head-left">
+            <div class="head-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1.27A7 7 0 0 1 14 23h-4a7 7 0 0 1-5.73-3H3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+              </svg>
+            </div>
+            <div class="head-meta">
+              <span class="head-name">AI 助手</span>
+              <span class="head-status">在线 · 即时回复</span>
+            </div>
           </div>
-          <el-button text size="small" @click="clearMessages" :disabled="messages.length <= 1">
-            清空
-          </el-button>
+          <button class="head-clear" @click="clearMessages" :disabled="messages.length <= 1" title="清空对话">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+          </button>
         </div>
 
-        <div class="chat-body" ref="chatBodyRef">
+        <!-- 消息区 -->
+        <div class="panel-body" ref="bodyRef">
           <div
             v-for="(msg, i) in messages"
             :key="i"
-            class="msg-row"
-            :class="msg.role === 'user' ? 'msg-user' : 'msg-ai'"
+            class="msg"
+            :class="msg.role"
           >
             <div class="msg-bubble">{{ msg.content }}</div>
           </div>
-          <div v-if="loading" class="msg-row msg-ai">
-            <div class="msg-bubble msg-thinking">
-              <span class="dot-pulse"></span>
+          <div v-if="loading" class="msg ai">
+            <div class="msg-bubble thinking">
+              <span class="dot" />
+              <span class="dot" />
+              <span class="dot" />
             </div>
           </div>
         </div>
 
-        <div class="chat-footer">
-          <el-input
-            v-model="inputText"
-            placeholder="输入你的问题..."
-            size="small"
-            class="chat-input"
-            @keyup.enter="sendMessage"
-            :disabled="loading"
-          />
-          <el-button type="primary" size="small" @click="sendMessage" :loading="loading" class="send-btn">
-            发送
-          </el-button>
+        <!-- 底栏 -->
+        <div class="panel-foot">
+          <div class="input-wrap">
+            <input
+              v-model="inputText"
+              placeholder="输入消息..."
+              @keydown.enter.prevent="sendMessage"
+              :disabled="loading"
+              class="msg-input"
+            />
+            <button class="send-btn" @click="sendMessage" :disabled="loading || !inputText.trim()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </transition>
@@ -65,213 +94,381 @@ import request from '@/api'
 const visible = ref(false)
 const loading = ref(false)
 const inputText = ref('')
-const chatBodyRef = ref<HTMLDivElement | null>(null)
+const bodyRef = ref<HTMLDivElement | null>(null)
 
 const messages = ref<{ role: string; content: string }[]>([
-  { role: 'ai', content: '你好呀！我是 Online_Voting 小助手，有什么可以帮你的吗？😊' }
+  { role: 'ai', content: '你好，我是 AI 助手。有什么可以帮助你的？' }
 ])
 
-const toggleChat = () => {
-  visible.value = !visible.value
-}
+const toggleChat = () => { visible.value = !visible.value }
 
 const sendMessage = async () => {
   const text = inputText.value.trim()
   if (!text || loading.value) return
-
   messages.value.push({ role: 'user', content: text })
   inputText.value = ''
   loading.value = true
-  scrollToBottom()
-
+  scrollDown()
   try {
-    const data = await request.post('/ai/chat', null, {
-      params: { message: text }
-    })
+    const data = await request.post('/ai/chat', null, { params: { message: text } })
     const reply = typeof data === 'string' ? data : (data.reply || data.t?.reply || data)
     messages.value.push({ role: 'ai', content: reply })
   } catch {
-    messages.value.push({ role: 'ai', content: '小助手暂时开小差了，稍后再试试吧 😅' })
+    messages.value.push({ role: 'ai', content: '抱歉，我暂时遇到了一点问题，请稍后重试。' })
   } finally {
     loading.value = false
-    scrollToBottom()
+    scrollDown()
   }
 }
 
 const clearMessages = () => {
   messages.value = [
-    { role: 'ai', content: '你好呀！我是 Online_Voting 小助手，有什么可以帮你的吗？😊' }
+    { role: 'ai', content: '你好，我是 AI 助手。有什么可以帮助你的？' }
   ]
 }
 
-const scrollToBottom = async () => {
+const scrollDown = async () => {
   await nextTick()
-  if (chatBodyRef.value) {
-    chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
-  }
+  if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight
 }
 </script>
 
 <style scoped>
-.ai-chat-container {
+/* ===== 容器 ===== */
+.ai-chat-root {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 28px;
+  right: 28px;
   z-index: 9999;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.ai-float-btn {
-  width: 52px !important;
-  height: 52px !important;
-  background: linear-gradient(135deg, #4361ee, #725bff) !important;
-  border: none !important;
-  box-shadow: 0 6px 24px rgba(67, 97, 238, 0.35) !important;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+/* ===== 触发按钮 ===== */
+.ai-trigger {
   position: relative;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 50%;
+  background: #1a1a2e;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 16px rgba(26, 26, 46, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease,
+              background 0.3s ease;
+  outline: none;
 }
 
-.ai-float-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 32px rgba(67, 97, 238, 0.5) !important;
+.ai-trigger:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 8px 28px rgba(26, 26, 46, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: #2a2a4e;
 }
 
-.ai-float-btn.is-active {
-  background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
-  box-shadow: 0 6px 24px rgba(231, 76, 60, 0.35) !important;
+.ai-trigger:active {
+  transform: scale(0.94);
 }
 
-.btn-icon {
-  font-size: 20px;
-  line-height: 1;
+.ai-trigger.is-open {
+  background: #dc2626;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.25);
 }
 
-/* 聊天窗口 */
-.ai-chat-window {
+.ai-trigger.is-open:hover {
+  background: #b91c1c;
+}
+
+.trigger-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* ===== 聊天面板 ===== */
+.ai-panel {
   position: absolute;
   bottom: 64px;
   right: 0;
-  width: 360px;
-  height: 520px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  width: 368px;
+  height: 540px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #f0f0f0;
 }
 
-.chat-header {
+/* ===== 面板头部 ===== */
+.panel-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
-  background: linear-gradient(135deg, #4361ee, #725bff);
-  color: #fff;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
 }
 
-.header-left {
+.head-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.header-icon {
-  font-size: 18px;
+.head-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.header-title {
+.head-avatar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.head-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.head-name {
+  font-size: 14px;
   font-weight: 600;
-  font-size: 15px;
+  color: #111;
+  letter-spacing: -0.01em;
 }
 
-.chat-body {
+.head-status {
+  font-size: 11.5px;
+  color: #22c55e;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.head-clear {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.head-clear:hover {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.head-clear:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ===== 消息区 ===== */
+.panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
-  background: #f8f9fc;
-}
-
-.msg-row {
-  margin-bottom: 12px;
+  padding: 16px 20px;
+  background: #fafafa;
   display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.msg-user {
-  justify-content: flex-end;
+.msg {
+  display: flex;
+  max-width: 82%;
+}
+
+.msg.user {
+  align-self: flex-end;
+}
+
+.msg.ai {
+  align-self: flex-start;
 }
 
 .msg-bubble {
-  max-width: 80%;
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: 13px;
+  padding: 10px 16px;
+  font-size: 13.5px;
   line-height: 1.6;
   word-break: break-word;
+  border-radius: 18px;
+  letter-spacing: -0.005em;
 }
 
-.msg-user .msg-bubble {
-  background: #4361ee;
+.msg.user .msg-bubble {
+  background: #1a1a2e;
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 
-.msg-ai .msg-bubble {
+.msg.ai .msg-bubble {
   background: #fff;
-  color: #303133;
-  border: 1px solid #ebeef5;
+  color: #1f2937;
+  border: 1px solid #f0f0f0;
   border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
-.msg-thinking {
-  padding: 14px 20px !important;
-}
-
-.dot-pulse {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: #4361ee;
-  border-radius: 50%;
-  animation: pulse 1.2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-
-.chat-footer {
+/* 思考动画 */
+.thinking {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 22px !important;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d1d5db;
+  animation: bounce 1.4s infinite both;
+}
+
+.dot:nth-child(2) { animation-delay: 0.16s; }
+.dot:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 0.9; }
+}
+
+/* ===== 底栏 ===== */
+.panel-foot {
+  padding: 12px 16px 16px;
   border-top: 1px solid #f0f0f0;
   background: #fff;
+  flex-shrink: 0;
 }
 
-.chat-input {
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f5f5;
+  border-radius: 14px;
+  padding: 4px 4px 4px 16px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrap:focus-within {
+  background: #fff;
+  box-shadow: 0 0 0 1.5px #1a1a2e;
+}
+
+.msg-input {
   flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 13.5px;
+  color: #1f2937;
+  padding: 8px 0;
+  font-family: inherit;
 }
 
-.chat-input :deep(.el-input__inner) {
-  border-radius: 10px !important;
-  font-size: 13px;
+.msg-input::placeholder {
+  color: #9ca3af;
 }
 
 .send-btn {
-  border-radius: 10px !important;
-  font-weight: 500 !important;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: #1a1a2e;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-/* 动画 */
-.chat-slide-enter-active,
-.chat-slide-leave-active {
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+.send-btn:hover {
+  background: #2a2a4e;
 }
-.chat-slide-enter-from,
-.chat-slide-leave-to {
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
+
+.send-btn:active {
+  transform: scale(0.92);
+}
+
+.send-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ===== 面板进出动画 ===== */
+.panel-enter-active {
+  animation: panel-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.panel-leave-active {
+  animation: panel-out 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+}
+
+/* ===== 滚动条 ===== */
+.panel-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-body::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
 }
 </style>

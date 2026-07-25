@@ -201,7 +201,8 @@ import {
 const router = useRouter()
 const route = useRoute()
 const voteId = Number(route.params.id)
-const userId = Number(localStorage.getItem('userId') || 0)
+import { getUserId } from '@/utils/auth'
+const userId = getUserId()
 
 // ===== 投票数据 =====
 const vote = ref({
