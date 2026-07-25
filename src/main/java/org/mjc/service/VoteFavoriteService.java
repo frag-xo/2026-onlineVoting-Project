@@ -32,4 +32,9 @@ public interface VoteFavoriteService extends IService<VoteFavorite> {
      * 获取用户收藏的投票ID列表
      */
     List<Long> getFavoriteVoteIds(Long userId);
+
+    /**
+     * 获取用户收藏的投票详情
+     */
+    List<Vote> getFavoriteVotes(Long userId);
 }

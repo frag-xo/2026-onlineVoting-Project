@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.mjc.dto.DTO;
+import org.mjc.entity.Vote;
 import org.mjc.entity.VoteComment;
 import org.mjc.entity.VoteFavorite;
 import org.mjc.entity.VoteNotification;
@@ -80,13 +81,13 @@ public class UserCenterController {
         return dto;
     }
 
-    @Operation(summary = "获取收藏列表", description = "获取用户收藏的投票ID列表")
+    @Operation(summary = "获取收藏列表", description = "获取用户收藏的投票列表")
     @GetMapping("/favorites")
-    public DTO<List<Long>> getFavorites(jakarta.servlet.http.HttpServletRequest request) {
+    public DTO<List<Vote>> getFavorites(jakarta.servlet.http.HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("currentUserId");
-        List<Long> voteIds = voteFavoriteService.getFavoriteVoteIds(userId);
-        DTO<List<Long>> dto = new DTO<>(200, "查询成功");
-        dto.setT(voteIds);
+        List<Vote> votes = voteFavoriteService.getFavoriteVotes(userId);
+        DTO<List<Vote>> dto = new DTO<>(200, "查询成功");
+        dto.setT(votes);
         return dto;
     }
 
