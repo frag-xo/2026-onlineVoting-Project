@@ -66,4 +66,13 @@ public class VoteResponseDTO {
 
     @Schema(description = "简短标题（超过20字符显示省略号）")
     private String shortTitle;
+
+    @Schema(description = "审核状态：0-待审核，1-已通过，2-已拒绝")
+    private Integer auditStatus;
+
+    @Schema(description = "审核备注")
+    private String auditMsg;
+
+    @Schema(description = "是否推荐：0-否，1-是")
+    private Integer isRecommended;
 }

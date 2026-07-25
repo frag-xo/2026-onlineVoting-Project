@@ -3,13 +3,17 @@ package org.mjc.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.mjc.entity.Vote;
 import org.mjc.entity.VoteFavorite;
 import org.mjc.mapper.VoteFavoriteMapper;
 import org.mjc.service.VoteFavoriteService;
+import org.mjc.service.VoteService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(rollbackFor = Exception.class)
 public class VoteFavoriteServiceImpl extends ServiceImpl<VoteFavoriteMapper, VoteFavorite> implements VoteFavoriteService {
+
+    @Resource
+    private VoteService voteService;
 
     @Override
     public boolean favorite(Long voteId, Long userId) {
@@ -86,5 +93,26 @@ public class VoteFavoriteServiceImpl extends ServiceImpl<VoteFavoriteMapper, Vot
         return this.list(wrapper).stream()
                 .map(VoteFavorite::getVoteId)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Vote> getFavoriteVotes(Long userId) {
+        if (userId == null) {
+            return new ArrayList<>();
+        }
+
+        List<Long> voteIds = getFavoriteVoteIds(userId);
+        if (voteIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Vote> votes = new ArrayList<>();
+        for (Long voteId : voteIds) {
+            Vote vote = voteService.getVoteById(voteId);
+            if (vote != null) {
+                votes.add(vote);
+            }
+        }
+        return votes;
     }
 }

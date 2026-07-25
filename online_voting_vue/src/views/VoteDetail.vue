@@ -45,7 +45,7 @@
           <el-radio
             v-for="opt in vote.options"
             :key="opt.optionId"
-            :label="opt.optionId"
+            :value="opt.optionId"
             :disabled="vote.isExpired"
             class="option-radio"
           >

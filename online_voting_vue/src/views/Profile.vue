@@ -332,16 +332,13 @@ const loadHistory = async () => {
 const loadFavorites = async () => {
   favLoading.value = true
   try {
-    const ids = await getFavorites() // 返回 [1,2,3]
-    if (!ids || ids.length === 0) {
+    const votes = await getFavorites() // 已返回完整投票信息
+    if (!votes || votes.length === 0) {
       favorites.value = []
       stats.value.totalFav = 0
       return
     }
-    // 批量获取投票详情
-    const promises = ids.map((id: number) => getVoteDetail(id))
-    const results = await Promise.all(promises)
-    favorites.value = results.map((item: any) => ({
+    favorites.value = votes.map((item: any) => ({
       id: item.id,
       title: item.title,
       statusText: item.statusText || (item.status === 1 ? '进行中' : '已结束'),
