@@ -5,8 +5,8 @@
         <div class="detail-header">
           <h2>{{ vote.title }}</h2>
           <div>
-            <el-tag :type="vote.isExpired ? 'info' : 'success'">
-              {{ vote.isExpired ? '已结束' : '进行中' }}
+            <el-tag :type="vote.status === 0 ? 'warning' : vote.status === 1 ? 'success' : 'info'">
+              {{ vote.status === 0 ? '未开始' : vote.status === 1 ? '进行中' : '已结束' }}
             </el-tag>
             <el-button
                 :type="isFav ? 'danger' : 'default'"
@@ -78,11 +78,11 @@
       <div class="submit-area">
         <el-button
             type="primary"
-            :disabled="vote.isExpired || !selectedOption"
+            :disabled="vote.status !== 1 || !selectedOption"
             :loading="submitting"
             @click="handleSubmit"
         >
-          提交投票
+          {{ vote.status === 0 ? '未开始' : vote.status === 2 ? '已结束' : '提交投票' }}
         </el-button>
         <el-button @click="goBack">返回列表</el-button>
       </div>
@@ -209,6 +209,7 @@ const vote = ref({
   id: 0,
   title: '',
   deadline: '',
+  status: 0,
   isExpired: false,
   totalVotes: 0,
   options: [] as { optionId: number; text: string }[]
@@ -368,6 +369,7 @@ const loadDetail = async () => {
       id: voteInfo.id || 0,
       title: voteInfo.title || '',
       deadline: voteInfo.endTime || '',
+      status: voteInfo.status !== undefined ? voteInfo.status : (voteInfo.isEnded ? 2 : 1),
       isExpired: voteInfo.status === 2 || voteInfo.isEnded || false,
       totalVotes: voteInfo.totalVoters || 0,
       options: options.map((opt: any) => ({

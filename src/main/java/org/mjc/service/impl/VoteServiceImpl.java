@@ -297,9 +297,25 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
         vote.setUpdateTime(now);
 
         // 默认状态为进行中
-        if (vote.getStatus() == null) {
-            vote.setStatus(1);
+
+
+
+        LocalDateTime publishTime = saveDTO.getPublishTime();
+        if (publishTime != null && publishTime.isAfter(now)) {
+            // 定时发布：状态设为未开始(0)
+            vote.setStatus(0);
+            vote.setPublishTime(publishTime);
+            System.out.println("⏰ 定时投票: " + publishTime);
+            log.info("⏰ 定时投票已创建，将在 {} 发布", publishTime);
+        } else {
+            if (saveDTO.getStatus() != null && (saveDTO.getStatus() == 0 || saveDTO.getStatus() == 1)) {
+                vote.setStatus(saveDTO.getStatus());
+            } else {
+                vote.setStatus(1);
+            }
+            vote.setPublishTime(now);
         }
+
         Long creatorId = saveDTO.getCreatorId();
         if (creatorId != null) {
             Account creator = accountService.getById(creatorId);
@@ -313,8 +329,8 @@ public class VoteServiceImpl extends ServiceImpl<VoteMapper, Vote> implements Vo
         } else {
             vote.setAuditStatus(0);
         }
-
         boolean result = this.save(vote);
+
         if (result) {
             log.info("新增投票成功: {} (ID: {})", vote.getTitle(), vote.getId());
 

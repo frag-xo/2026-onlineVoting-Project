@@ -5,13 +5,12 @@
       <el-col :span="6">
         <el-card class="profile-card">
           <div class="user-info">
-            <!-- 头像 -->
             <div class="avatar-wrapper">
               <el-avatar
-                :size="80"
-                :src="avatarUrl"
-                class="user-avatar"
-                @click="triggerUpload"
+                  :size="80"
+                  :src="avatarUrl"
+                  class="user-avatar"
+                  @click="triggerUpload"
               >
                 {{ !avatarUrl ? '👤' : '' }}
               </el-avatar>
@@ -19,16 +18,13 @@
                 <el-icon><Camera /></el-icon>
                 <span>换头像</span>
               </div>
-              <el-upload
-                ref="uploadRef"
-                class="avatar-upload"
-                :show-file-list="false"
-                :auto-upload="false"
-                :on-change="handleAvatarChange"
-                accept="image/*"
-              >
-                <input type="file" style="display:none" />
-              </el-upload>
+              <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  style="display:none"
+                  @change="handleFileChange"
+              />
             </div>
 
             <div class="username-wrapper">
@@ -61,7 +57,6 @@
               </el-button>
             </div>
 
-            <!-- 新增：积分变动记录按钮 -->
             <div style="margin-top: 12px;">
               <el-button size="small" type="primary" plain @click="showPointsLog = true" style="width: 100%;">
                 📊 积分变动记录
@@ -75,6 +70,7 @@
       <el-col :span="18">
         <el-card class="profile-card">
           <el-tabs v-model="activeTab">
+            <!-- 我的投票记录 -->
             <el-tab-pane label="我的投票记录" name="records">
               <el-table :data="myVotes" stripe v-loading="loading">
                 <el-table-column prop="title" label="投票标题" />
@@ -89,6 +85,7 @@
               </el-table>
             </el-tab-pane>
 
+            <!-- 我的收藏 -->
             <el-tab-pane label="我的收藏" name="favorites">
               <el-table :data="favorites" stripe v-loading="favLoading">
                 <el-table-column prop="title" label="投票标题" />
@@ -107,6 +104,7 @@
               </el-table>
             </el-tab-pane>
 
+            <!-- 我发布的投票 -->
             <el-tab-pane label="我发布的投票" name="myPublish">
               <el-table :data="myPublish" stripe v-loading="publishLoading">
                 <el-table-column prop="title" label="投票标题" />
@@ -133,6 +131,7 @@
               </el-table>
             </el-tab-pane>
 
+            <!-- 审核投票 -->
             <el-tab-pane label="审核投票" name="audit" v-if="isAdmin">
               <div class="audit-header">
                 <span class="audit-info">待审核投票数：{{ pendingAuditList.length }}</span>
@@ -157,7 +156,7 @@
               <el-empty v-if="pendingAuditList.length === 0" description="暂无待审核投票 🎉" />
             </el-tab-pane>
 
-            <!-- 用户管理（管理员） -->
+            <!-- 用户管理 -->
             <el-tab-pane label="用户管理" name="users" v-if="isAdmin">
               <div class="audit-header">
                 <span class="audit-info">用户总数：{{ userList.length }}</span>
@@ -186,18 +185,18 @@
                 <el-table-column label="操作" width="200">
                   <template #default="{ row }">
                     <el-button
-                      size="small"
-                      :type="row.deleted === 1 ? 'success' : 'warning'"
-                      @click="toggleUserStatus(row.id)"
-                      :disabled="row.id === userId"
+                        size="small"
+                        :type="row.deleted === 1 ? 'success' : 'warning'"
+                        @click="toggleUserStatus(row.id)"
+                        :disabled="row.id === userId"
                     >
                       {{ row.deleted === 1 ? '启用' : '禁用' }}
                     </el-button>
                     <el-button
-                      size="small"
-                      :type="row.utype === 'ROLE_1' ? 'info' : 'danger'"
-                      @click="toggleUserRole(row.id, row.utype)"
-                      :disabled="row.id === userId"
+                        size="small"
+                        :type="row.utype === 'ROLE_1' ? 'info' : 'danger'"
+                        @click="toggleUserRole(row.id, row.utype)"
+                        :disabled="row.id === userId"
                     >
                       {{ row.utype === 'ROLE_1' ? '取消管理' : '设为管理' }}
                     </el-button>
@@ -229,20 +228,20 @@
         <el-avatar :size="120" :src="tempAvatarUrl" class="preview-avatar" />
         <p style="color:#909399;font-size:14px;margin-top:12px;">点击下方按钮上传新头像</p>
         <el-upload
-          class="avatar-upload-btn"
-          :show-file-list="false"
-          :auto-upload="false"
-          :on-change="handleAvatarConfirm"
-          accept="image/*"
+            class="avatar-upload-btn"
+            :show-file-list="false"
+            :auto-upload="false"
+            accept="image/*"
+            @change="handleFileChange"
         >
           <el-button type="primary">选择图片</el-button>
         </el-upload>
         <el-button
-          v-if="tempAvatarUrl && tempAvatarUrl !== avatarUrl"
-          type="success"
-          @click="saveAvatar"
-          style="margin-top:12px;"
-          :loading="avatarSaving"
+            v-if="tempAvatarUrl && tempAvatarUrl !== avatarUrl"
+            type="success"
+            @click="saveAvatar"
+            style="margin-top:12px;"
+            :loading="avatarSaving"
         >
           确认保存
         </el-button>
@@ -334,12 +333,13 @@ const loading = ref(false)
 const favLoading = ref(false)
 const publishLoading = ref(false)
 const auditLoading = ref(false)
+const userLoading = ref(false)
 const activeTab = ref('records')
 
 const userId = ref(getUserIdAuth())
 const username = ref(getUsernameAuth())
 const isAdmin = ref(checkIsAdmin())
-const avatarUrl = ref(getAuth('avatar'))
+const avatarUrl = ref(getAuth('avatar') || '')
 
 const displayName = computed(() => username.value)
 
@@ -354,7 +354,7 @@ const pointsLogLoading = ref(false)
 const loadPointsLog = async () => {
   pointsLogLoading.value = true
   try {
-    const data = await getPointsLog()
+    const data: any = await getPointsLog()
     pointsLogList.value = data || []
   } catch (error: any) {
     ElMessage.error(error.message || '加载积分记录失败')
@@ -363,7 +363,6 @@ const loadPointsLog = async () => {
   }
 }
 
-// 监听弹窗打开，加载数据
 watch(showPointsLog, (val) => {
   if (val) loadPointsLog()
 })
@@ -385,7 +384,6 @@ const levelInfo = computed(() => {
   return current
 })
 
-// 获取积分规则（与截图一致）
 const earnRules = [
   { action: '注册', points: '+20', limit: '一次性' },
   { action: '每日登录', points: '+10', limit: '每天1次' },
@@ -397,7 +395,6 @@ const earnRules = [
   { action: '投票被推荐', points: '+50', limit: '无限制' }
 ]
 
-// 消费积分规则（与截图一致）
 const spendRules = [
   { action: '发布投票', points: '-10', note: '普通用户发布消耗' },
   { action: '置顶投票', points: '-50', note: '投票置顶展示' },
@@ -423,12 +420,12 @@ const myVotes = ref<any[]>([])
 const favorites = ref<any[]>([])
 const myPublish = ref<any[]>([])
 const pendingAuditList = ref<any[]>([])
+const userList = ref<any[]>([])
 
 // -------------------- 加载数据 --------------------
 const loadHistory = async () => {
   try {
-    const data = await getVoteHistory()
-    // 后端返回: [{ voteId, voteTitle, optionId, voteTime }]
+    const data: any = await getVoteHistory()
     myVotes.value = data.map((item: any) => ({
       id: item.voteId,
       title: item.voteTitle || '未知投票',
@@ -445,7 +442,7 @@ const loadHistory = async () => {
 const loadFavorites = async () => {
   favLoading.value = true
   try {
-    const votes = await getFavorites() // 已返回完整投票信息
+    const votes: any = await getFavorites()
     if (!votes || votes.length === 0) {
       favorites.value = []
       stats.value.totalFav = 0
@@ -467,7 +464,7 @@ const loadFavorites = async () => {
 
 const loadPoints = async () => {
   try {
-    const data = await getMyPoints()
+    const data: any = await getMyPoints()
     stats.value.points = data.points || 0
   } catch (error: any) {
     console.warn('加载积分失败', error.message)
@@ -477,14 +474,12 @@ const loadPoints = async () => {
 const loadMyPublish = async () => {
   publishLoading.value = true
   try {
-    // 直接使用 getVoteList 返回的数据（VoteResponseDTO 已包含所有字段）
-    const data = await getVoteList({
+    const data: any = await getVoteList({
       pageNum: 1,
       pageSize: 100,
       creatorId: userId.value
     })
     const records = data.records || data || []
-
     myPublish.value = records.map((item: any) => ({
       id: item.id,
       title: item.title,
@@ -504,12 +499,25 @@ const loadPendingAudits = async () => {
   if (!isAdmin.value) return
   auditLoading.value = true
   try {
-    const data = await getPendingAudits()
+    const data: any = await getPendingAudits()
     pendingAuditList.value = data || []
   } catch (error: any) {
     ElMessage.error(error.message || '加载待审核列表失败')
   } finally {
     auditLoading.value = false
+  }
+}
+
+const loadUserList = async () => {
+  if (!isAdmin.value) return
+  userLoading.value = true
+  try {
+    const data: any = await getUserList()
+    userList.value = data || []
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载用户列表失败')
+  } finally {
+    userLoading.value = false
   }
 }
 
@@ -547,46 +555,61 @@ const confirmEditName = async () => {
 const avatarPreviewVisible = ref(false)
 const tempAvatarUrl = ref('')
 const avatarSaving = ref(false)
-const uploadRef = ref()
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploadFile = ref<File | null>(null)
 
 const triggerUpload = () => {
-  const input = document.querySelector('.avatar-upload input[type="file"]') as HTMLInputElement
-  if (input) input.click()
+  if (fileInput.value) {
+    fileInput.value.click()
+  }
 }
 
-const handleAvatarChange = (file: any) => {
-  const reader = new FileReader()
+const handleFileChange = (event: any) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  const maxSize = 20 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.warning('图片不能超过 20MB')
+    input.value = ''
+    return
+  }
+
+  console.log('选择了文件:', file.name)
+
+  uploadFile.value = file
+
+const reader = new FileReader()
   reader.onload = (e: any) => {
     tempAvatarUrl.value = e.target.result
     avatarPreviewVisible.value = true
+    uploadFile.value = file
   }
-  reader.readAsDataURL(file.raw)
+  reader.readAsDataURL(file)
+  input.value = ''
 }
 
-const handleAvatarConfirm = (file: any) => {
-  const reader = new FileReader()
-  reader.onload = (e: any) => {
-    tempAvatarUrl.value = e.target.result
-  }
-  reader.readAsDataURL(file.raw)
-}
+
 
 const saveAvatar = async () => {
+  if (!uploadFile.value) {
+    ElMessage.warning('请先选择图片')
+    return
+  }
   avatarSaving.value = true
   try {
-    const input = document.querySelector('.avatar-upload input[type="file"]') as HTMLInputElement
-    const file = input?.files?.[0]
-    if (!file) {
-      ElMessage.warning('请先选择图片')
-      avatarSaving.value = false
-      return
+    const data: any = await uploadAvatar(uploadFile.value)
+    const avatarUrlStr = data?.avatar || data?.url || data || ''
+    if (avatarUrlStr) {
+      avatarUrl.value = avatarUrlStr
+      setAuth('avatar', avatarUrlStr)
+      ElMessage.success('头像更换成功！')
+      avatarPreviewVisible.value = false
+      uploadFile.value = null
+      window.location.reload()
+    } else {
+      ElMessage.error('上传成功但未返回头像地址')
     }
-    const data = await uploadAvatar(file)
-    const avatarUrlStr = data.avatar || data.url || data
-    avatarUrl.value = avatarUrlStr
-    setAuth('avatar', avatarUrlStr)
-    avatarPreviewVisible.value = false
-    ElMessage.success('头像更换成功！')
   } catch (error: any) {
     ElMessage.error(error.message || '上传失败')
   } finally {
@@ -636,22 +659,6 @@ const rejectVote = async (id: number) => {
 }
 
 // -------------------- 管理员用户管理 --------------------
-const userLoading = ref(false)
-const userList = ref<any[]>([])
-
-const loadUserList = async () => {
-  if (!isAdmin.value) return
-  userLoading.value = true
-  try {
-    const data = await getUserList()
-    userList.value = data || []
-  } catch (error: any) {
-    ElMessage.error(error.message || '加载用户列表失败')
-  } finally {
-    userLoading.value = false
-  }
-}
-
 const toggleUserStatus = async (id: number) => {
   try {
     await ElMessageBox.confirm('确认要切换该用户的状态吗？', '操作确认', {
@@ -781,7 +788,6 @@ onMounted(async () => {
 .preview-avatar { display: block; margin: 0 auto; }
 .avatar-upload-btn { display: inline-block; margin-top: 16px; }
 
-/* 积分规则弹窗样式 */
 .rules-container h4 {
   margin: 16px 0 8px;
   color: #303133;

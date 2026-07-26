@@ -137,6 +137,19 @@ const handleSubmit = async () => {
         const filteredOptions = form.options.filter(item => item.trim() !== '')
         const userId = getUserId()
 
+        const isScheduled = form.scheduledTime && form.scheduledTime.trim() !== ''
+        const status = isScheduled ? 0 : 1  // 定时发布 → 未开始(0)，立即发布 → 进行中(1)
+        const publishTime = isScheduled ? form.scheduledTime : undefined
+
+        console.log('=== 📤 提交投票参数 ===')
+        console.log('title:', form.title)
+        console.log('scheduledTime:', form.scheduledTime)
+        console.log('isScheduled:', isScheduled)
+        console.log('status:', status)
+        console.log('publishTime:', publishTime)
+        console.log('endTime:', form.endTime)
+        console.log('========================')
+
         if (isAdmin.value) {
           // 管理员直接发布
           await createVote({

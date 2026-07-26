@@ -186,6 +186,8 @@ export const unfavoriteVote = (voteId: number) => {
 export const checkFavorited = (voteId: number) => {
   return request.get(`/user/favorite/check/${voteId}`)
 }
+// 获取收藏列表
+
 
 // ========== 评论 ==========
 

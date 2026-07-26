@@ -23,17 +23,15 @@
 
     <!-- 筛选区域 -->
     <div class="filter-area">
-      <!-- 左侧：搜索框 + 状态筛选 -->
       <div class="filter-left">
-        <!-- ✅ 新增搜索框 -->
         <el-input
-          v-model="searchKeyword"
-          placeholder="输入投票标题搜索..."
-          clearable
-          size="default"
-          style="width: 240px; margin-right: 12px;"
-          @keyup.enter="handleSearch"
-          @clear="handleSearch"
+            v-model="searchKeyword"
+            placeholder="输入投票标题搜索..."
+            clearable
+            size="default"
+            style="width: 240px; margin-right: 12px;"
+            @keyup.enter="loadVotes"
+            @clear="loadVotes"
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
@@ -42,19 +40,18 @@
 
         <div class="filter-group">
           <button
-            v-for="tab in filterTabs"
-            :key="tab.value"
-            :class="['filter-tag', { active: statusFilter === tab.value }]"
-            @click="statusFilter = tab.value; handleSearch()"
+              v-for="tab in filterTabs"
+              :key="tab.value"
+              :class="['filter-tag', { active: statusFilter === tab.value }]"
+              @click="statusFilter = tab.value; loadVotes()"
           >
             {{ tab.label }}
           </button>
         </div>
       </div>
 
-      <!-- 右侧：排序 -->
       <div class="sort-group">
-        <el-select v-model="sortBy" placeholder="排序方式" @change="handleSearch" class="filter-select">
+        <el-select v-model="sortBy" placeholder="排序方式" @change="loadVotes" class="filter-select">
           <el-option label="截止时间 ↑" value="endTime-asc" />
           <el-option label="截止时间 ↓" value="endTime-desc" />
           <el-option label="最新发布" value="createTime-desc" />
@@ -66,11 +63,11 @@
     <div v-loading="loading" class="vote-grid">
       <template v-if="voteList.length > 0">
         <el-card
-          v-for="(item, index) in voteList"
-          :key="item.id"
-          class="vote-card"
-          shadow="hover"
-          :style="{ animationDelay: (index * 0.05) + 's' }"
+            v-for="(item, index) in voteList"
+            :key="item.id"
+            class="vote-card"
+            shadow="hover"
+            :style="{ animationDelay: (index * 0.05) + 's' }"
         >
           <div class="card-header">
             <h3>{{ item.title }}</h3>
@@ -80,7 +77,7 @@
           </div>
           <div class="card-body">
             <div class="vote-meta">
-              <span class="meta-item meta-users">{{ item.totalVotes }} 人参与</span>
+              <span class="meta-item meta-users">{{ item.totalVotes || 0 }} 人参与</span>
               <span class="meta-item meta-time">{{ item.deadline ? item.deadline.slice(0, 10) : '长期有效' }}</span>
             </div>
             <div class="progress-bar">
@@ -89,14 +86,6 @@
             <div class="card-actions">
               <el-button class="action-btn primary" size="small" @click="goDetail(item.id)">投票</el-button>
               <el-button class="action-btn ghost" size="small" @click="goResult(item.id)">结果</el-button>
-              <el-button
-                class="action-btn like-btn"
-                size="small"
-                :type="item.isLiked ? 'primary' : 'default'"
-                @click="toggleLike(item)"
-              >
-                👍 {{ item.likeCount || 0 }}
-              </el-button>
               <el-dropdown trigger="click" @command="(cmd: string) => handleShare(item.id, cmd)">
                 <el-button class="action-btn share-btn" size="small">
                   <span style="font-size:15px;line-height:1;">⋯</span>
@@ -130,16 +119,30 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
-import { getVoteList, likeVote } from '@/api/vote'
+import { getVoteList } from '@/api/vote'
 import request from '@/api/index'
 import { getToken } from '@/utils/auth'
 
 const router = useRouter()
-const voteList = ref<any[]>([])
+
+// ============================================================
+// 数据定义
+// ============================================================
+
+interface VoteItem {
+  id: number
+  title: string
+  status: string
+  totalVotes: number
+  deadline: string
+  options: any[]
+}
+
+const voteList = ref<VoteItem[]>([])
 const loading = ref(false)
-const statusFilter = ref<number | ''>('')
+const statusFilter = ref<number | string>('')
 const sortBy = ref('endTime-asc')
-const searchKeyword = ref('') // ✅ 搜索关键词
+const searchKeyword = ref('')
 
 const filterTabs = [
   { label: '全部', value: '' },
@@ -148,8 +151,16 @@ const filterTabs = [
   { label: '已结束', value: 2 }
 ]
 
+// ============================================================
+// 计算属性
+// ============================================================
+
 const activeCount = computed(() => voteList.value.filter(v => v.status === '进行中').length)
 const endedCount = computed(() => voteList.value.filter(v => v.status === '已结束').length)
+
+// ============================================================
+// 加载投票列表
+// ============================================================
 
 const loadVotes = async () => {
   loading.value = true
@@ -158,7 +169,7 @@ const loadVotes = async () => {
     const params: any = {
       pageNum: 1,
       pageSize: 100,
-      title: searchKeyword.value
+      title: searchKeyword.value || undefined
     }
     if (statusFilter.value !== '') {
       params.status = statusFilter.value
@@ -170,10 +181,27 @@ const loadVotes = async () => {
       params.orderDirection = orderDirection
     }
 
-    const data = await getVoteList(params)
-    const records = data.records || data || []
-    
-    // ✅ 状态映射表（基于数字 status）
+    console.log('📤 请求参数:', params)
+
+    const data: any = await getVoteList(params)
+
+    // 兼容多种返回格式
+    let records = data
+    if (data && data.records) {
+      records = data.records
+    } else if (Array.isArray(data)) {
+      records = data
+    } else if (data && data.tList) {
+      records = data.tList
+    } else if (data && data.t) {
+      records = data.t
+    }
+
+    if (!records || !Array.isArray(records)) {
+      voteList.value = []
+      return
+    }
+
     const statusMap: Record<number, string> = {
       0: '未开始',
       1: '进行中',
@@ -182,42 +210,26 @@ const loadVotes = async () => {
 
     voteList.value = records.map((item: any) => ({
       id: item.id,
-      title: item.title,
-      status: statusMap[item.status] || '未知',  // 使用数字映射
-      totalVotes: item.totalVoters || 0,
-      deadline: item.endTime,
-      options: item.options || [],
-      likeCount: 0,
-      isLiked: false
+      title: item.title || '未命名投票',
+      status: statusMap[item.status] || '未知',
+      totalVotes: item.totalVoters || item.totalVotes || 0,
+      deadline: item.endTime || item.deadline || '',
+      options: item.options || []
     }))
+
+    console.log('✅ 加载完成，共', voteList.value.length, '条')
   } catch (error: any) {
-    ElMessage.error(error.message || '加载投票列表失败')
+    console.error('❌ 加载投票列表失败:', error)
+    // 不弹窗错误，静默失败
+    voteList.value = []
   } finally {
     loading.value = false
   }
 }
 
-// ✅ 搜索处理
-const handleSearch = () => {
-  loadVotes()
-}
-
-// ✅ 重置搜索（清空关键词和状态筛选）
-const resetSearch = () => {
-  searchKeyword.value = ''
-  statusFilter.value = ''
-  loadVotes()
-}
-
-const toggleLike = async (item: any) => {
-  try {
-    await likeVote(item.id)
-    item.isLiked = !item.isLiked
-    item.likeCount = (item.likeCount || 0) + (item.isLiked ? 1 : -1)
-  } catch (error: any) {
-    ElMessage.error(error.message || '操作失败')
-  }
-}
+// ============================================================
+// 分享功能
+// ============================================================
 
 const qrDialogVisible = ref(false)
 const qrImageUrl = ref('')
@@ -227,8 +239,9 @@ const handleShare = async (id: number, cmd: string) => {
   const baseUrl = window.location.origin
   if (cmd === 'link') {
     try {
-      const res = await request.get(`/vote/share/link/${id}`, { params: { baseUrl } })
-      await navigator.clipboard.writeText(res)
+      const res: any = await request.get(`/vote/share/link/${id}`, { params: { baseUrl } })
+      const link = typeof res === 'string' ? res : JSON.stringify(res)
+      await navigator.clipboard.writeText(link)
       ElMessage.success('链接已复制到剪贴板')
     } catch {
       ElMessage.error('生成分享链接失败')
@@ -250,6 +263,10 @@ const handleShare = async (id: number, cmd: string) => {
   }
 }
 
+// ============================================================
+// 跳转
+// ============================================================
+
 const goDetail = (id: number) => {
   router.push(`/detail/${id}`)
 }
@@ -257,6 +274,10 @@ const goDetail = (id: number) => {
 const goResult = (id: number) => {
   router.push(`/result/${id}`)
 }
+
+// ============================================================
+// 生命周期
+// ============================================================
 
 onMounted(() => {
   loadVotes()
@@ -343,6 +364,16 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
 }
 
 .filter-group {
@@ -378,6 +409,21 @@ onMounted(() => {
 
 .filter-select {
   width: 150px;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 10px !important;
+  border: 1px solid #e8e8ed !important;
+  box-shadow: none !important;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: #4361ee !important;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #4361ee !important;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1) !important;
 }
 
 .vote-grid {
@@ -513,15 +559,6 @@ onMounted(() => {
   background: #f0f2ff !important;
 }
 
-.like-btn {
-  flex: 0.8 !important;
-}
-.like-btn.el-button--primary {
-  background: #409eff !important;
-  color: #fff !important;
-  border-color: #409eff !important;
-}
-
 .qr-container {
   text-align: center;
   padding: 16px;
@@ -538,45 +575,5 @@ onMounted(() => {
   margin-top: 16px;
   color: #8e8ea0;
   font-size: 14px;
-}
-
-.filter-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-}
-
-.filter-area {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.filter-group {
-  display: flex;
-  gap: 6px;
-  background: #f0f0f3;
-  padding: 4px;
-  border-radius: 10px;
-}
-
-/* ✅ 搜索框样式优化 */
-:deep(.el-input__wrapper) {
-  border-radius: 10px !important;
-  border: 1px solid #e8e8ed !important;
-  box-shadow: none !important;
-}
-
-:deep(.el-input__wrapper:hover) {
-  border-color: #4361ee !important;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  border-color: #4361ee !important;
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1) !important;
 }
 </style>

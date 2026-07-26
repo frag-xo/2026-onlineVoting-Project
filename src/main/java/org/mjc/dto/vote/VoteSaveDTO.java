@@ -44,4 +44,7 @@ public class VoteSaveDTO {
 
     @Schema(description = "投票选项列表")
     private List<String> options;
+
+    @Schema(description = "定时发布时间（null表示立即发布）")
+    private LocalDateTime publishTime;
 }

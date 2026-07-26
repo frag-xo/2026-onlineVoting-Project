@@ -28,8 +28,41 @@ export function clearAuth(): void {
 }
 
 // 便捷访问
-export const getToken = () => getAuth('token')
-export const getUserId = () => Number(getAuth('userId') || 0)
-export const getUsername = () => getAuth('username') || '用户'
-export const getUtype = () => getAuth('utype') || ''
-export const isAdmin = () => getUtype() === 'ROLE_1'
+export const getToken = (): string | null => {
+  return sessionStorage.getItem('token')
+}
+
+export const setToken = (token: string): void => {
+  sessionStorage.setItem('token', token)
+}
+
+export const removeToken = (): void => {
+  sessionStorage.removeItem('token')
+}
+
+export const getUserId = (): number => {
+  return Number(sessionStorage.getItem('userId') || 0)
+}
+
+export const setUserId = (userId: string): void => {
+  sessionStorage.setItem('userId', userId)
+}
+
+export const getUsername = (): string => {
+  return sessionStorage.getItem('username') || ''
+}
+
+export const setUsername = (username: string): void => {
+  sessionStorage.setItem('username', username)
+}
+export const getUtype = (): string => {
+  return sessionStorage.getItem('utype') || 'ROLE_3'
+}
+
+export const setUtype = (utype: string): void => {
+  sessionStorage.setItem('utype', utype)
+}
+
+export const isAdmin = (): boolean => {
+  return getUtype() === 'ROLE_1'
+}
