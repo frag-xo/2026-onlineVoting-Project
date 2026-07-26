@@ -52,6 +52,10 @@
             <el-icon><DataAnalysis /></el-icon>
             <template #title>数据看板</template>
           </el-menu-item>
+          <el-menu-item index="/shop">
+            <el-icon><Shop /></el-icon>
+            <template #title>积分商城</template>
+          </el-menu-item>
         </el-menu>
 
         <!-- 主题切换 -->

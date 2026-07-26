@@ -15,7 +15,9 @@ const routes = [
   { path: '/create', name: 'CreateVote', component: () => import('../views/CreateVote.vue') },
   { path: '/anime-pk', name: 'AnimePK', component: () => import('../views/AnimePK.vue') },
   { path: '/friends', name: 'Friends', component: () => import('@/views/Friends.vue'), meta: { requiresAuth: true } },
-  { path: '/chat/:friendId', name: 'Chat', component: () => import('@/views/Chat.vue'), meta: { requiresAuth: true } }
+  { path: '/chat/:friendId', name: 'Chat', component: () => import('@/views/Chat.vue'), meta: { requiresAuth: true } },
+  { path: '/shop', name: 'ShopIndex', component: () => import('../views/Shop/ShopIndex.vue') },
+  { path: '/shop/my-items', name: 'MyItems', component: () => import('../views/Shop/MyItems.vue') },
 ]
 
 const router = createRouter({
@@ -35,4 +37,6 @@ router.beforeEach((to) => {
   return true
 })
 
+
 export default router
+
