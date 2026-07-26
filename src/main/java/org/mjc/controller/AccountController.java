@@ -277,7 +277,13 @@ public class AccountController {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
+        // 第一次免费，之后需要改名卡
+        if (account.getNameChanges() != null && account.getNameChanges() > 0) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "首次改名已用完，请前往积分商城购买改名卡");
+        }
+
         account.setUname(newUsername);
+        account.setNameChanges(account.getNameChanges() == null ? 1 : account.getNameChanges() + 1);
         account.setUpdateTime(java.time.LocalDateTime.now());
         boolean result = accountService.updateById(account);
         if (!result) {

@@ -23,7 +23,10 @@
           class="item-card"
           :class="{ equipped: item.isEquipped }"
       >
-        <div class="item-icon">{{ item.icon || '🎁' }}</div>
+        <div class="item-icon">
+          <img v-if="item.icon" :src="item.icon" class="item-img" alt="" />
+          <span v-else>🎁</span>
+        </div>
         <div class="item-info">
           <h4>{{ item.name }}</h4>
           <span class="item-type">{{ item.type }}</span>
@@ -83,6 +86,7 @@ import { ElMessage } from 'element-plus'
 import { getMyItems, equipItem, useNameCard } from '@/api/shop'
 import { getUserId } from '@/utils/auth'
 
+const imgBase = 'http://localhost:8080'
 const router = useRouter()
 const loading = ref(false)
 const equipLoading = ref<number | null>(null)
@@ -194,7 +198,17 @@ onMounted(() => {
   background: #f0f9f0;
 }
 .item-icon {
-  font-size: 32px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.item-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 .item-info {
   flex: 1;

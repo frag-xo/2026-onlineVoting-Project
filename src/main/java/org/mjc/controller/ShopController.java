@@ -10,6 +10,7 @@ import org.mjc.service.ShopService;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -23,9 +24,25 @@ public class ShopController {
 
     @Operation(summary = "商品列表", description = "获取所有上架商品")
     @GetMapping("/items")
-    public DTO<List<ShopItem>> getItems() {
-        DTO<List<ShopItem>> dto = new DTO<>(200, "查询成功");
-        dto.setT(shopService.getItemList());
+    public DTO<List<Map<String, Object>>> getItems(HttpServletRequest request) {
+        String base = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        List<ShopItem> items = shopService.getItemList();
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (ShopItem item : items) {
+            Map<String, Object> m = new java.util.HashMap<>();
+            m.put("id", item.getId());
+            m.put("name", item.getName());
+            m.put("description", item.getDescription());
+            m.put("type", item.getType());
+            m.put("content", item.getContent());
+            m.put("price", item.getPrice());
+            m.put("icon", item.getIcon() != null ? base + item.getIcon() : null);
+            m.put("sortOrder", item.getSortOrder());
+            m.put("status", item.getStatus());
+            result.add(m);
+        }
+        DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
+        dto.setT(result);
         return dto;
     }
 
@@ -42,10 +59,18 @@ public class ShopController {
 
     @Operation(summary = "我的物品", description = "获取已购买的物品列表")
     @GetMapping("/my-items")
-    public DTO<List<Map<String, Object>>> myItems(jakarta.servlet.http.HttpServletRequest request) {
+    public DTO<List<Map<String, Object>>> myItems(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("currentUserId");
+        String base = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        List<Map<String, Object>> items = shopService.getUserItems(userId);
+        for (Map<String, Object> item : items) {
+            String icon = (String) item.get("icon");
+            if (icon != null && !icon.startsWith("http")) {
+                item.put("icon", base + icon);
+            }
+        }
         DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
-        dto.setT(shopService.getUserItems(userId));
+        dto.setT(items);
         return dto;
     }
 

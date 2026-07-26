@@ -14,12 +14,15 @@
     <!-- 商品列表 -->
     <div v-loading="loading" class="shop-grid">
       <div
-          v-for="item in itemList"
+          v-for="(item, index) in itemList"
           :key="item.id"
           class="shop-card"
           :style="{ animationDelay: (index * 0.05) + 's' }"
       >
-        <div class="card-icon">{{ item.icon || '🎁' }}</div>
+        <div class="card-icon">
+          <img v-if="item.icon && item.icon.startsWith('http')" :src="item.icon" style="width:48px;height:48px;object-fit:contain;" alt="" @error="onIconError($event)" />
+          <span v-else style="font-size:36px;">🎁</span>
+        </div>
         <div class="card-info">
           <h3>{{ item.name }}</h3>
           <p class="desc">{{ item.description || '暂无描述' }}</p>
@@ -60,6 +63,7 @@ import { getShopItems, buyShopItem } from '@/api/shop'
 import { getMyPoints } from '@/api/vote'
 import { getUserId } from '@/utils/auth'
 
+const imgBase = 'http://localhost:8080'
 const router = useRouter()
 const loading = ref(false)
 const buyLoading = ref<number | null>(null)
@@ -108,6 +112,11 @@ const confirmBuy = async () => {
   } finally {
     buyLoading.value = null
   }
+}
+
+const onIconError = (e: any) => {
+  e.target.style.display = 'none'
+  e.target.parentNode.querySelector('.icon-fallback')?.classList.remove('icon-fallback')
 }
 
 const goToMyItems = () => {
@@ -163,10 +172,17 @@ onMounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 .card-icon {
-  font-size: 42px;
   width: 60px;
-  text-align: center;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+}
+.item-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 .card-info {
   flex: 1;

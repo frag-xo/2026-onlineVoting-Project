@@ -101,4 +101,8 @@ public class Account implements Serializable {
     @TableField("deleted")
     @Schema(description = "逻辑删除：0-未删，1-已删")
     private Integer deleted;
+
+    @TableField("name_changes")
+    @Schema(description = "改名次数")
+    private Integer nameChanges;
 }
