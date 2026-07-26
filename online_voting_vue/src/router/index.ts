@@ -13,7 +13,9 @@ const routes = [
   { path: '/profile', name: 'Profile', component: () => import('../views/Profile.vue') },
   { path: '/rankings', name: 'Rankings', component: () => import('../views/Rankings.vue') },
   { path: '/create', name: 'CreateVote', component: () => import('../views/CreateVote.vue') },
-  { path: '/anime-pk', name: 'AnimePK', component: () => import('../views/AnimePK.vue') }
+  { path: '/anime-pk', name: 'AnimePK', component: () => import('../views/AnimePK.vue') },
+  { path: '/friends', name: 'Friends', component: () => import('@/views/Friends.vue'), meta: { requiresAuth: true } },
+  { path: '/chat/:friendId', name: 'Chat', component: () => import('@/views/Chat.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

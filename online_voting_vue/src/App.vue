@@ -36,6 +36,14 @@
             <el-icon><StarFilled /></el-icon>
             <template #title>动漫PK</template>
           </el-menu-item>
+          <!-- 新增社交菜单 -->
+          <el-menu-item index="/friends">
+            <el-icon><ChatLineRound /></el-icon>
+            <template #title>
+              社交
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" style="margin-left: 8px;" />
+            </template>
+          </el-menu-item>
           <el-menu-item index="/admin" v-if="isLoggedIn && isAdmin">
             <el-icon><Setting /></el-icon>
             <template #title>后台管理</template>
@@ -97,6 +105,14 @@
             </el-button>
 
             <template v-if="isLoggedIn">
+              <!-- 消息入口（带角标） -->
+              <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="msg-badge">
+                <el-button type="primary" link @click="goFriends" class="header-btn">
+                  <el-icon><ChatLineRound /></el-icon>
+                  消息
+                </el-button>
+              </el-badge>
+
               <span class="username">👤 {{ username }}</span>
               <span class="role-tag">{{ isAdmin ? '管理员' : '用户' }}</span>
               <el-button type="danger" link @click="handleLogout" class="header-btn">
@@ -121,11 +137,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import AIChatButton from '@/components/AIChatButton.vue'
 import { getToken, getUsername, getUtype, isAdmin as checkIsAdmin, clearAuth } from '@/utils/auth'
+import { getTotalUnread } from '@/api/chat'
 import {
   House,
   Setting,
@@ -136,7 +153,8 @@ import {
   UserFilled,
   DArrowLeft,
   DArrowRight,
-  Brush
+  Brush,
+  ChatLineRound
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -148,6 +166,10 @@ const username = ref('')
 const isAdmin = ref(false)
 const currentPageTitle = ref('投票列表')
 const showCustomColor = ref(false)
+const unreadCount = ref(0)
+
+// 定时器
+let timer: number | null = null
 
 const pageTitles: Record<string, string> = {
   '/': '投票列表',
@@ -157,7 +179,8 @@ const pageTitles: Record<string, string> = {
   '/dashboard': '数据看板',
   '/profile': '个人中心',
   '/rankings': '投票排行',
-  '/create': '发布投票'
+  '/create': '发布投票',
+  '/friends': '社交'
 }
 
 const updatePageTitle = () => {
@@ -166,6 +189,8 @@ const updatePageTitle = () => {
     currentPageTitle.value = '投票详情'
   } else if (path.startsWith('/result')) {
     currentPageTitle.value = '投票结果'
+  } else if (path.startsWith('/chat')) {
+    currentPageTitle.value = '聊天'
   } else {
     currentPageTitle.value = pageTitles[path] || '投票系统'
   }
@@ -181,6 +206,20 @@ const checkLoginStatus = () => {
     isLoggedIn.value = false
     username.value = ''
     isAdmin.value = false
+  }
+}
+
+// 获取未读消息数
+const loadUnread = async () => {
+  if (!isLoggedIn.value) {
+    unreadCount.value = 0
+    return
+  }
+  try {
+    const count = await getTotalUnread()
+    unreadCount.value = count || 0
+  } catch (e) {
+    // 忽略错误
   }
 }
 
@@ -223,14 +262,24 @@ onMounted(() => {
   checkLoginStatus()
   updatePageTitle()
   restoreTheme()
+  loadUnread()
+  // 每30秒刷新未读数
+  timer = window.setInterval(loadUnread, 30000)
 
-  // 监听其他 Tab 的登录状态变化（localStorage 跨 Tab 共享）
+  // 监听其他 Tab 的登录状态变化
   window.addEventListener('storage', (e) => {
     if (e.key === 'token' && e.oldValue && e.newValue && e.oldValue !== e.newValue) {
       ElMessage.warning('检测到其他账号登录，当前页面已失效，请重新登录')
       handleLogout()
     }
   })
+})
+
+onBeforeUnmount(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
 })
 
 watch(() => route.path, () => {
@@ -246,23 +295,35 @@ const toggleCollapse = () => {
 const goLogin = () => router.push('/login')
 const goRegister = () => router.push('/register')
 const goAdmin = () => router.push('/admin')
+const goFriends = () => router.push('/friends')
 
 const handleLogout = () => {
   clearAuth()
   isLoggedIn.value = false
   isAdmin.value = false
+  unreadCount.value = 0
   ElMessage.success('已退出登录')
   router.push('/login')
 }
 </script>
 
 <style>
+/* 原有样式保留，仅添加消息角标相关 */
+.msg-badge {
+  display: inline-flex;
+  align-items: center;
+}
+.msg-badge .el-badge__content.is-fixed {
+  top: 6px;
+  right: 8px;
+}
+
+/* 其余样式与之前完全一致，此处省略（请确保保留之前的全部样式） */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; height: 100%; }
 html, #app { height: 100%; }
 .app-container { height: 100%; }
 
-/* ===== 侧边栏 ===== */
 .app-aside {
   background-color: #304156;
   transition: width 0.3s;
@@ -291,7 +352,6 @@ html, #app { height: 100%; }
   color: #fff !important;
 }
 
-/* 主题切换 */
 .theme-switcher {
   display: flex;
   align-items: center;
@@ -307,7 +367,6 @@ html, #app { height: 100%; }
 .collapse-btn:hover { background-color: #1f2d3d; }
 .collapse-btn .el-icon { font-size: 20px; }
 
-/* ===== 顶部栏 ===== */
 .app-header {
   background-color: #fff; box-shadow: 0 1px 4px rgba(0,21,41,0.08);
   display: flex; justify-content: space-between; align-items: center;
@@ -319,7 +378,6 @@ html, #app { height: 100%; }
 .username { color: #303133; font-size: 14px; }
 .role-tag { font-size: 12px; color: #909399; background-color: #f4f4f5; padding: 2px 12px; border-radius: 12px; }
 
-/* ===== 主内容区 ===== */
 .app-main {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   background-size: 400% 400%;
@@ -334,7 +392,6 @@ html, #app { height: 100%; }
   100% { background-position: 0% 50%; }
 }
 
-/* ===== 通用组件增强 ===== */
 .el-card {
   transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), box-shadow 0.3s ease !important;
   border-radius: 16px !important;

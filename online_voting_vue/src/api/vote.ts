@@ -350,3 +350,7 @@ export const getAnimeHistory = (limit = 20) => {
 export const getPointsLog = () => {
   return request.get('/points/log')
 }
+
+export const getAccountById = (id: number) => {
+  return request.get(`/account/${id}`)
+}
