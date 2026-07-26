@@ -39,7 +39,7 @@ import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getChatHistory, markMessagesRead } from '@/api/chat'
-import { getFriendList } from '@/api/friend'
+import { getFriendList } from '@/api/friends'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,16 +58,13 @@ const scrollbarRef = ref()
 const isConnected = ref(false)
 const ws = ref<WebSocket | null>(null)
 
-// 模拟在线状态（实际可从 WebSocket 或后端获取）
 const isOnline = computed(() => isConnected.value)
 
-// 格式化时间
 const formatTime = (iso: string) => {
   if (!iso) return ''
   return new Date(iso).toLocaleString('zh-CN', { hour12: false })
 }
 
-// 加载历史消息
 const loadHistory = async (append = false) => {
   if (loading.value || !hasMore.value) return
   loading.value = true
@@ -91,7 +88,6 @@ const loadHistory = async (append = false) => {
   }
 }
 
-// 滚动到底部
 const scrollToBottom = () => {
   const wrap = scrollbarRef.value?.wrapRef
   if (wrap) {
@@ -99,7 +95,6 @@ const scrollToBottom = () => {
   }
 }
 
-// 滚动加载更多
 const handleScroll = ({ scrollTop }: { scrollTop: number }) => {
   if (scrollTop === 0 && hasMore.value && !loading.value) {
     pageNum.value++
@@ -107,19 +102,11 @@ const handleScroll = ({ scrollTop }: { scrollTop: number }) => {
   }
 }
 
-// 发送消息（通过 WebSocket）
 const sendMessage = () => {
-  const text = inputText.value.trim()
-  if (!text || !isConnected.value) return
-  // 构建消息对象，与后端约定格式
-  const msg = {
-    type: 'chat',
-    data: {
-      toUserId: friendId,
-      content: text
-    }
-  }
-  ws.value?.send(JSON.stringify(msg))
+  const text = inputText.value.trim();
+  if (!text || !isConnected.value) return;
+  // 发送格式：{"toUserId": friendId, "content": text}
+  ws.value?.send(JSON.stringify({ toUserId: friendId, content: text }));
   // 乐观更新
   const tempMsg = {
     id: Date.now(),
@@ -127,54 +114,69 @@ const sendMessage = () => {
     content: text,
     createTime: new Date().toISOString(),
     isRead: true
-  }
-  messages.value.push(tempMsg)
-  inputText.value = ''
-  nextTick(scrollToBottom)
-}
+  };
+  messages.value.push(tempMsg);
+  inputText.value = '';
+  nextTick(scrollToBottom);
+};
 
-// WebSocket 连接
 const connectWebSocket = () => {
-  const token = localStorage.getItem('token')
-  // 替换为您的 WebSocket 地址
-  const wsUrl = `ws://localhost:8080/ws?token=${token}`
-  ws.value = new WebSocket(wsUrl)
+  const token = localStorage.getItem('token');
+  if (!token) {
+    ElMessage.warning('请先登录');
+    return;
+  }
+  const wsUrl = `ws://localhost:8080/ws/chat?token=${token}`;
+  ws.value = new WebSocket(wsUrl);
 
   ws.value.onopen = () => {
-    isConnected.value = true
-    console.log('WebSocket 已连接')
-  }
+    isConnected.value = true;
+    console.log('WebSocket 已连接');
+  };
 
   ws.value.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    // 假设后端推送消息格式: { type: 'message', data: { fromUserId, content, createTime, ... } }
-    if (data.type === 'message' && data.data.fromUserId === friendId) {
-      messages.value.push({
-        id: Date.now() + Math.random(),
-        fromUserId: data.data.fromUserId,
-        content: data.data.content,
-        createTime: data.data.createTime || new Date().toISOString(),
-        isRead: false
-      })
-      nextTick(scrollToBottom)
-      // 自动标记已读（可调用后端接口）
-      markMessagesRead(friendId)
+    try {
+      const data = JSON.parse(event.data);
+      // 处理错误消息
+      if (data.type === 'error') {
+        ElMessage.error(data.message || '消息发送失败');
+        return;
+      }
+      // 处理 ack 确认（可选）
+      if (data.type === 'ack') {
+        console.log('消息已送达:', data.messageId);
+        return;
+      }
+      // 普通消息（对方发来的）
+      if (data.fromUserId && data.fromUserId === friendId) {
+        messages.value.push({
+          id: Date.now() + Math.random(),
+          fromUserId: data.fromUserId,
+          content: data.content,
+          createTime: data.createTime || new Date().toISOString(),
+          isRead: false
+        });
+        nextTick(scrollToBottom);
+        // 自动标记已读
+        markMessagesRead(friendId);
+      }
+    } catch (e) {
+      console.error('解析消息失败', e);
     }
-  }
+  };
 
   ws.value.onerror = (error) => {
-    console.error('WebSocket 错误:', error)
-    ElMessage.error('连接异常，请刷新重试')
-  }
+    console.error('WebSocket 错误:', error);
+    ElMessage.error('连接异常，请刷新重试');
+  };
 
   ws.value.onclose = () => {
-    isConnected.value = false
-    console.log('WebSocket 已断开')
+    isConnected.value = false;
+    console.log('WebSocket 已断开');
     // 可尝试重连
-  }
-}
+  };
+};
 
-// 获取好友昵称
 const fetchFriendInfo = async () => {
   try {
     const list = await getFriendList()
@@ -185,7 +187,6 @@ const fetchFriendInfo = async () => {
   }
 }
 
-// 进入页面标记已读
 const markRead = async () => {
   try {
     await markMessagesRead(friendId)
@@ -194,10 +195,8 @@ const markRead = async () => {
   }
 }
 
-// 返回
 const goBack = () => router.back()
 
-// 生命周期
 onMounted(async () => {
   await fetchFriendInfo()
   await loadHistory()
