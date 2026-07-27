@@ -38,6 +38,14 @@ public class PkController {
         return dto;
     }
 
+    @Operation(summary = "获取所有对战话题（打乱顺序）")
+    @GetMapping("/pairs/{categoryId}")
+    public DTO<List<Map<String, Object>>> getAllPairs(@PathVariable Long categoryId) {
+        DTO<List<Map<String, Object>>> dto = new DTO<>(200, "查询成功");
+        dto.setT(pkService.getAllPairs(categoryId));
+        return dto;
+    }
+
     @Operation(summary = "提交对战结果")
     @PostMapping("/battle")
     public DTO<Void> submit(

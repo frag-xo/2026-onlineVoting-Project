@@ -14,6 +14,8 @@ const routes = [
   { path: '/rankings', name: 'Rankings', component: () => import('../views/Rankings.vue') },
   { path: '/create', name: 'CreateVote', component: () => import('../views/CreateVote.vue') },
   { path: '/anime-pk', name: 'AnimePK', component: () => import('../views/AnimePK.vue') },
+  { path: '/pk', name: 'PkIndex', component: () => import('../views/PkIndex.vue') },
+  { path: '/pk/battle/:id', name: 'PkBattle', component: () => import('../views/PkBattle.vue') },
   { path: '/friends', name: 'Friends', component: () => import('@/views/Friends.vue'), meta: { requiresAuth: true } },
   { path: '/chat/:friendId', name: 'Chat', component: () => import('@/views/Chat.vue'), meta: { requiresAuth: true } },
   { path: '/shop', name: 'ShopIndex', component: () => import('../views/Shop/ShopIndex.vue') },
@@ -27,7 +29,7 @@ const router = createRouter({
 
 // 路由守卫：未登录跳转登录页
 router.beforeEach((to) => {
-  const publicPages = ['/', '/login', '/register', '/detail', '/result', '/anime-pk']
+  const publicPages = ['/', '/login', '/register', '/detail', '/result', '/anime-pk', '/pk']
   if (!publicPages.includes(to.path) && !to.path.startsWith('/detail') && !to.path.startsWith('/result')) {
     const token = getToken()
     if (!token) {

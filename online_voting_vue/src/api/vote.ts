@@ -358,3 +358,27 @@ export const getPointsRanking = (limit = 10) => {
 export const getAccountById = (id: number) => {
   return request.get(`/account/${id}`)
 }
+
+// ========== 多分类PK对战 ==========
+
+export const getPkCategories = () => {
+  return request.get('/pk/categories')
+}
+
+export const getPkPair = (categoryId: number) => {
+  return request.get(`/pk/pair/${categoryId}`)
+}
+
+export const getPkPairs = (categoryId: number) => {
+  return request.get(`/pk/pairs/${categoryId}`)
+}
+
+export const submitPkBattle = (categoryId: number, pairId: number, chosen: string) => {
+  return request.post('/pk/battle', null, {
+    params: { categoryId, pairId, chosen }
+  })
+}
+
+export const getPkResult = (categoryId: number) => {
+  return request.get(`/pk/result/${categoryId}`)
+}

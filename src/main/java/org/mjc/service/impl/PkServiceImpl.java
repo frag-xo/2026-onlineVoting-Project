@@ -67,6 +67,23 @@ public class PkServiceImpl implements PkService {
     }
 
     @Override
+    public List<Map<String, Object>> getAllPairs(Long categoryId) {
+        LambdaQueryWrapper<PkPair> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PkPair::getCategoryId, categoryId);
+        List<PkPair> all = pairMapper.selectList(wrapper);
+        Collections.shuffle(all, new java.security.SecureRandom());
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (PkPair pair : all) {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", pair.getId());
+            m.put("optionA", pair.getOptionA());
+            m.put("optionB", pair.getOptionB());
+            result.add(m);
+        }
+        return result;
+    }
+
+    @Override
     public boolean submitBattle(Long userId, Long categoryId, Long pairId, String chosen) {
         PkBattle battle = new PkBattle();
         battle.setUserId(userId);
@@ -79,32 +96,86 @@ public class PkServiceImpl implements PkService {
 
     @Override
     public Map<String, Object> getUserResult(Long userId, Long categoryId) {
-        // 查询该分类下所有对战记录
         LambdaQueryWrapper<PkBattle> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PkBattle::getUserId, userId).eq(PkBattle::getCategoryId, categoryId);
         List<PkBattle> battles = battleMapper.selectList(wrapper);
 
-        // 统计每个选项被选的次数
         Map<String, Integer> choiceCount = new HashMap<>();
         for (PkBattle b : battles) {
             choiceCount.merge(b.getChosen(), 1, Integer::sum);
         }
 
-        // 找被选最多的选项
         String topChoice = choiceCount.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse("");
 
-        // 根据分类和最高选项生成称号
         String title = generateTitle(categoryId, topChoice, battles.size());
+        String analysis = generateAnalysis(categoryId, choiceCount, battles.size());
 
         Map<String, Object> result = new HashMap<>();
         result.put("totalRounds", battles.size());
-        result.put("topChoice", topChoice);
         result.put("title", title);
-        result.put("choices", choiceCount);
+        result.put("analysis", analysis);
         return result;
+    }
+
+    /** 生成个性化分析文案 */
+    private String generateAnalysis(Long categoryId, Map<String, Integer> choices, int total) {
+        if (total == 0) return "还没有对战过，去试试吧！";
+        int t = Math.max(total, 1);
+
+        java.util.function.Function<String, Integer> cnt = key -> choices.getOrDefault(key, 0);
+        java.util.function.Function<Integer, String> pct = c -> c * 100 / t + "%";
+
+        switch (categoryId.intValue()) {
+            case 1: { // 美食
+                int sweet = cnt.apply("甜粽子") + cnt.apply("番茄炒蛋放糖") + cnt.apply("奶茶全糖");
+                int savory = cnt.apply("咸粽子") + cnt.apply("香菜") + cnt.apply("麻酱");
+                if (sweet > savory) return "你有一颗" + pct.apply(sweet) + "的甜党之心 🍬";
+                else return "你的灵魂有" + pct.apply(savory) + "是咸党口味 🧂";
+            }
+            case 2: { // 生活
+                int cat = cnt.apply("猫派"), dog = cnt.apply("狗派");
+                int night = cnt.apply("熬夜冠军"), early = cnt.apply("早睡早起");
+                int mt = cnt.apply("奶茶"), coffee = cnt.apply("咖啡");
+                int home = cnt.apply("在家躺平"), travel = cnt.apply("出门旅游");
+
+                if (cat > dog) return "你是" + pct.apply(cat) + "的猫奴 🐱，喵星人统治你";
+                if (dog > cat) return "你是" + pct.apply(dog) + "的狗党 🐶";
+                if (night > early) return "你是" + pct.apply(night) + "的夜猫子 🌙";
+                if (mt > coffee) return "你是" + pct.apply(mt) + "的奶茶续命者 🧋";
+                if (coffee > mt) return "你是" + pct.apply(coffee) + "的咖啡因战士 ☕";
+                if (home > travel) return "你有" + pct.apply(home) + "的躺平基因 🛋️";
+                return "你是" + pct.apply(travel) + "的旅行家 ✈️";
+            }
+            case 6: { // 奶茶
+                int highEnd = cnt.apply("喜茶") + cnt.apply("奈雪的茶") + cnt.apply("乐乐茶");
+                int budget = cnt.apply("蜜雪冰城") + cnt.apply("甜啦啦");
+                int gufeng = cnt.apply("茶颜悦色") + cnt.apply("霸王茶姬") + cnt.apply("古茗");
+                if (highEnd > budget && highEnd > gufeng) return "你有" + pct.apply(highEnd) + "的贵妇奶茶胃 💎";
+                if (budget > highEnd && budget > gufeng) return "你有" + pct.apply(budget) + "的性价比之魂 💰";
+                if (gufeng > highEnd && gufeng > budget) return "你有" + pct.apply(gufeng) + "的国风茶韵 🏮";
+                return "你是" + pct.apply(Math.max(highEnd, Math.max(budget, gufeng))) + "的奶茶自由人 🧋";
+            }
+            case 5: { // 南北差异
+                int north = cnt.apply("咸豆腐脑") + cnt.apply("暖气") + cnt.apply("搓澡")
+                          + cnt.apply("北方蟑螂") + cnt.apply("澡堂") + cnt.apply("北方冬天外面冷")
+                          + cnt.apply("大葱蘸酱");
+                int south = cnt.apply("甜豆腐脑") + cnt.apply("空调") + cnt.apply("南方蟑螂")
+                          + cnt.apply("南方冬天屋里冷") + cnt.apply("独立卫浴") + cnt.apply("精致小菜");
+                if (north > south) return "你是" + pct.apply(north) + "的北方人 🧊，抗冻属性点满";
+                if (south > north) return "你是" + pct.apply(south) + "的南方人 🌴，魔法攻击免疫";
+                return "你是南北混血，左右逢源 🤝";
+            }
+            default: {
+                var maxEntry = choices.entrySet().stream()
+                    .max(Map.Entry.comparingByValue()).orElse(null);
+                if (maxEntry == null) return "还没有对战记录";
+                int p = maxEntry.getValue() * 100 / t;
+                return "你的选择中「" + maxEntry.getKey() + "」占了" + p + "%";
+            }
+        }
     }
 
     private String generateTitle(Long categoryId, String topChoice, int totalRounds) {
@@ -159,6 +230,20 @@ public class PkServiceImpl implements PkService {
         titles.put("搓澡", "搓澡文化人");
         titles.put("北方蟑螂", "北方勇士");
         titles.put("南方蟑螂", "南方幸存者");
+
+        // 奶茶
+        titles.put("喜茶", "喜茶信徒");
+        titles.put("蜜雪冰城", "蜜雪精神股东");
+        titles.put("一点点", "一点点铁粉");
+        titles.put("茶颜悦色", "茶颜死忠");
+        titles.put("霸王茶姬", "霸王茶人");
+        titles.put("古茗", "古茗老客");
+        titles.put("茶百道", "茶百道拥趸");
+        titles.put("CoCo都可", "Coco常客");
+        titles.put("奈雪的茶", "奈雪女孩");
+        titles.put("乐乐茶", "乐乐茶教主");
+        titles.put("沪上阿姨", "沪上阿姨VIP");
+        titles.put("书亦烧仙草", "书亦爱好者");
 
         return titles.getOrDefault(topChoice, "投票先锋");
     }

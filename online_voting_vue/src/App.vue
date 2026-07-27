@@ -32,9 +32,9 @@
             <el-icon><UserFilled /></el-icon>
             <template #title>个人中心</template>
           </el-menu-item>
-          <el-menu-item index="/anime-pk">
-            <el-icon><StarFilled /></el-icon>
-            <template #title>动漫PK</template>
+          <el-menu-item index="/pk">
+            <el-icon><Pointer /></el-icon>
+            <template #title>PK对战</template>
           </el-menu-item>
           <!-- 新增社交菜单 -->
           <el-menu-item index="/friends">
@@ -153,7 +153,7 @@ import {
   DataAnalysis,
   TrendCharts,
   EditPen,
-  StarFilled,
+  Pointer,
   UserFilled,
   DArrowLeft,
   DArrowRight,

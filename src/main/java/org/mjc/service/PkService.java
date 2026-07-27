@@ -11,6 +11,9 @@ public interface PkService {
     /** 获取某个分类的随机对战话题 */
     Map<String, Object> getRandomPair(Long categoryId);
 
+    /** 获取某个分类所有话题（打乱顺序） */
+    List<Map<String, Object>> getAllPairs(Long categoryId);
+
     /** 提交一局对战结果 */
     boolean submitBattle(Long userId, Long categoryId, Long pairId, String chosen);
 
