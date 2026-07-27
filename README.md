@@ -1,24 +1,25 @@
 # Online_Voting 在线投票系统
 
-## 项目简介
-
-基于 Spring Boot + Vue 3 的在线投票系统，支持创建投票、参与投票、结果统计等功能。
+基于 Spring Boot 3.1.5 + Vue 3 的在线投票系统，支持投票管理、积分系统、社交功能、AI助手、动漫PK对战等。
 
 ## 技术栈
 
 ### 后端
-- Spring Boot 3.1.5
-- MyBatis-Plus 3.5.3.1
-- MySQL 8.0
-- Redis
-- JWT (jjwt)
-- Swagger (SpringDoc OpenAPI)
+- **Spring Boot 3.1.5** — 核心框架
+- **MyBatis-Plus 3.5.3.1** — ORM
+- **MySQL 8.0** — 数据库
+- **Redis** — 缓存
+- **JWT (jjwt)** — 身份认证
+- **WebSocket** — 实时聊天
+- **SpringDoc OpenAPI** — 接口文档
+- **Druid** — 连接池
+- **GLM-4-Flash API** — AI 能力
 
 ### 前端
-- Vue 3 + TypeScript
-- Element Plus
-- ECharts（数据可视化）
-- Vite
+- **Vue 3 + TypeScript**
+- **Element Plus**
+- **ECharts** — 数据可视化
+- **Vite**
 
 ## 快速开始
 
@@ -28,12 +29,10 @@
 - Redis
 - Node.js 18+
 
-### 2. 数据库配置
+### 2. 创建数据库
 ```sql
 CREATE DATABASE online_vote DEFAULT CHARSET utf8mb4;
 ```
-
-执行建表脚本：`src/main/resources/db/vote_schema.sql`
 
 ### 3. 修改配置
 编辑 `src/main/resources/application.yaml`：
@@ -42,11 +41,11 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/online_vote
     username: root
-    password: 123456
+    password: 你的密码
 ```
 
 ### 4. 启动后端
-运行 `OnlineVoteApplication.java`
+运行 `OnlineVoteApplication.java`（表结构由 MyBatis-Plus 自动/手动初始化）
 
 ### 5. 启动前端
 ```bash
@@ -60,156 +59,139 @@ npm run dev
 - 后端：http://localhost:8080
 - Swagger：http://localhost:8080/swagger-ui.html
 
+## 快速账号
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | testuser | 123456 |
+| 普通用户 | 自行注册 | — |
+
+## 功能一览
+
+### 🗳️ 投票核心
+| 功能 | 说明 |
+|------|------|
+| 投票CRUD | 发布、编辑、删除、结束投票 |
+| 选项管理 | 增删改投票选项 |
+| 多状态 | 未开始 / 进行中 / 已结束 |
+| 截止时间 | 到期自动截止 |
+| 图形验证码 | 投票需验证码防刷 |
+| 一人一票 | 每人每票只能投一次 |
+| 模糊搜索 | 按标题搜索投票 |
+| 排序筛选 | 按状态/时间/热度排序 |
+| 批量操作 | 管理员批量删除投票 |
+
+### 📊 数据展示
+| 功能 | 说明 |
+|------|------|
+| 饼图 | 投票结果实时饼图展示 |
+| 数据看板 | 总投票数/参与人数/趋势图/柱状图 |
+| 投票排行 | 按参与人数排名 |
+| 积分排行 | 按用户总积分排名 |
+| 投票趋势 | 近7天/30天投票趋势分析 |
+
+### 💰 积分系统
+| 功能 | 说明 |
+|------|------|
+| 赚积分 | 注册+20、登录+10、投票+5、评论+2、收藏+3、被推荐+50 |
+| 花积分 | 发布投票-10、置顶-50、匿名-5 |
+| 等级系统 | Lv1~Lv5，由总积分决定 |
+| 积分明细 | 查看积分增减记录 |
+| 积分排行榜 | 全站排行 |
+
+### 🏪 积分商城
+| 商品 | 积分 | 效果 |
+|------|------|------|
+| 称号 | 100~200 | 昵称旁显示称号文字 |
+| 改名卡 | 50 | 首次免费，之后需改名卡 |
+| 置顶卡 | 200 | 投票置顶24小时 |
+| 头像框×6 | 80~200 | 极光/烈焰/冰晶/霓虹/暗夜紫/冠军 |
+
+### 👥 社交功能
+| 功能 | 说明 |
+|------|------|
+| 评论 | 投票评论区 |
+| 收藏 | 收藏投票 |
+| 点赞 | 点赞投票 |
+| 好友系统 | 添加/同意/拒绝/删除好友 |
+| 实时聊天 | WebSocket 实时消息，在线推送 |
+| 在线状态 | 好友在线状态标识 |
+| 通知系统 | 审核结果通知等 |
+
+### 🤖 AI 小助手
+- 全局悬浮聊天按钮
+- 基于 GLM-4-Flash 智能对话
+- 支持系统功能咨询（积分、投票、好友等）
+- API 异常自动降级到关键词匹配模式
+
+### 🎮 动漫PK对战
+- 暗黑风格独立竞技场页面
+- 30轮胜者保留机制
+- ELO 评分算法
+- 32部动漫不重复挑战
+- Hover 卡片放大 + 光晕效果
+- 终选彩蛋 + 真爱粉称号
+- 胜率&ELO排行
+
+### 🎡 其他功能
+| 功能 | 说明 |
+|------|------|
+| 转盘抽奖 | 投票后可抽奖赢积分 |
+| 分享链接 | 生成投票分享链接 |
+| 二维码 | 生成投票二维码 |
+| Excel导出 | 导出投票结果 |
+| 审核机制 | 普通用户发布需管理员审核 |
+| 用户管理 | 管理员可启用/禁用用户、改角色 |
+| 多Tab隔离 | 不同浏览器Tab独立登录 |
+
 ## 角色权限
 
-| 角色 | 权限 |
+| 角色 | 说明 |
 |------|------|
-| ROLE_1 管理员 | 所有功能 |
-| ROLE_3 普通用户 | 查看、投票、分享 |
+| ROLE_1 管理员 | 全部功能，含审核/用户管理/看板 |
+| ROLE_3 普通用户 | 投票、发布（需审核）、商城、PK |
 
 ## 认证方式
 
-本系统使用 JWT (JSON Web Token) 进行身份认证。
-
-### 1. 登录获取 Token
-```
-POST /api/account/login?uname=testuser&pwd=123456
-```
-返回：
-```json
-{
-  "code": 200,
-  "msg": "登录成功",
-  "t": {
-    "token": "eyJhbGciOiJIUzI1NiJ9...",
-    "id": 2,
-    "uname": "testuser",
-    "utype": "ROLE_3"
-  }
-}
-```
-
-### 2. 请求携带 Token
-在请求头中添加：
+JWT Token 认证，请求头携带：
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
-
-### 3. Token 过期时间
-默认 24 小时，可在 `application.yaml` 中修改：
-```yaml
-jwt:
-  expiration: 86400000  # 24小时
-```
-
-## 接口列表
-
-### 公用接口（不需要登录）
-- `POST /api/account/register` - 注册 - [AccountController.java](src/main/java/org/mjc/controller/AccountController.java)
-- `POST /api/account/login` - 登录 - [AccountController.java](src/main/java/org/mjc/controller/AccountController.java)
-
-### 通用接口（需要登录，携带 Token）
-- `POST /api/vote/page` - 分页查投票列表（支持排序+状态筛选） - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/vote/{id}` - 查投票详情 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/vote/result/{id}` - 查投票结果 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `POST /api/vote/vote` - 用户投票（需要验证码） - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/captcha/generate` - 生成验证码 - [CaptchaController.java](src/main/java/org/mjc/controller/CaptchaController.java)
-- `GET /api/vote/hasVoted` - 查是否已投票 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/vote/share/link/{id}` - 生成分享链接 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/vote/share/qrcode/{id}` - 生成二维码 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/vote/export/{id}` - 导出投票结果 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/account/{id}` - 查询用户信息 - [AccountController.java](src/main/java/org/mjc/controller/AccountController.java)
-- `PUT /api/account` - 修改用户信息 - [AccountController.java](src/main/java/org/mjc/controller/AccountController.java)
-- `PUT /api/account/password` - 修改密码 - [AccountController.java](src/main/java/org/mjc/controller/AccountController.java)
-
-### 管理专用接口（需要管理员权限 ROLE_1）
-- `POST /api/vote` - 新增投票 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `PUT /api/vote` - 修改投票 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `DELETE /api/vote/{id}` - 删除投票 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `PUT /api/vote/end/{id}` - 结束投票 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `GET /api/admin/dashboard` - 数据看板 - [AdminController.java](src/main/java/org/mjc/controller/AdminController.java)
-- `GET /api/admin/user/list` - 用户列表 - [AdminController.java](src/main/java/org/mjc/controller/AdminController.java)
-- `PUT /api/admin/user/role` - 修改用户角色 - [AdminController.java](src/main/java/org/mjc/controller/AdminController.java)
-- `PUT /api/admin/user/status` - 禁用/启用用户 - [AdminController.java](src/main/java/org/mjc/controller/AdminController.java)
-- `DELETE /api/admin/user/{id}` - 删除用户 - [AdminController.java](src/main/java/org/mjc/controller/AdminController.java)
-- `POST /api/vote/option` - 新增选项 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `PUT /api/vote/option` - 修改选项 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-- `DELETE /api/vote/option/{id}` - 删除选项 - [VoteController.java](src/main/java/org/mjc/controller/VoteController.java)
-
-完整接口文档请访问 Swagger UI。
-
-## 核心功能
-
-### 用户功能
-- **注册/登录** - JWT Token 认证
-- **投票列表** - 按状态筛选（全部/进行中/未开始/已结束），按截止时间/创建时间排序
-- **投票详情** - 查看选项、参与投票（需验证码）
-- **实时结果** - 饼图展示投票结果，30秒自动刷新
-- **投票分享** - 生成分享链接 + 二维码（扫码即可参与）
-- **导出结果** - 导出投票结果为 Excel 文件
-
-### 管理员功能
-- **投票管理** - 创建/编辑/删除/结束投票，支持选项管理
-- **数据看板** - 总投票数、总参与人数、进行中投票统计，柱状图+趋势图
-- **用户管理** - 用户列表、修改角色、禁用/启用用户
-- **生成测试数据** - 随机生成投票和用户数据
-
-### 防刷票机制
-- 图形验证码：投票时需要输入验证码
-- 投票截止时间：超过截止时间无法投票
-- 一人一票：同一用户对同一投票只能投一次（数据库唯一约束）
-
-### 前端特色
-- Outfit + Inter 字体组合，现代排版
-- 卡片式设计，圆角+阴影+hover 动画
-- 统计横幅 + 进度条可视化
-- 响应式布局，适配移动端
 
 ## 项目结构
 
 ```
 Online_voting/
 ├── src/main/java/org/mjc/
-│   ├── controller/        # 控制器（4个）
-│   │   ├── AccountController.java
-│   │   ├── VoteController.java
-│   │   ├── AdminController.java
-│   │   └── CaptchaController.java
-│   ├── service/           # 服务层
-│   │   ├── AccountService.java
-│   │   ├── VoteService.java
-│   │   ├── VoteOptionService.java
-│   │   ├── VoteRecordService.java
-│   │   ├── CaptchaService.java
-│   │   ├── ExportService.java
-│   │   └── ShareService.java
-│   ├── mapper/            # 数据访问层
-│   ├── entity/            # 实体类
-│   ├── dto/vote/          # 数据传输对象
-│   ├── config/            # 配置类
-│   ├── interceptor/       # 权限拦截器
-│   ├── utils/             # JWT工具类
-│   └── exception/         # 异常处理
+│   ├── controller/     # 控制器
+│   ├── service/        # 服务层
+│   ├── mapper/         # 数据访问层
+│   ├── entity/         # 实体类
+│   ├── dto/            # DTO
+│   ├── config/         # 配置类（WebMVC/JWT/SpringDoc/WebSocket）
+│   ├── interceptor/    # JWT 权限拦截器
+│   ├── websocket/      # WebSocket 聊天处理器
+│   ├── utils/          # 工具类
+│   ├── cache/          # Redis 缓存
+│   └── exception/      # 异常处理
 ├── src/main/resources/
 │   ├── application.yaml
-│   └── db/vote_schema.sql # 建表脚本
-├── online_voting_vue/     # 前端项目
-│   ├── src/
-│   │   ├── views/         # 页面组件
-│   │   │   ├── Login.vue, Register.vue
-│   │   │   ├── VoteList.vue, VoteDetail.vue, VoteResult.vue
-│   │   │   └── Admin.vue
-│   │   ├── api/           # API封装
-│   │   ├── router/        # 路由配置
-│   │   └── App.vue        # 根组件
-│   └── index.html
-└── nginx/                 # Nginx配置
+│   └── static/images/  # 静态资源（动漫图/商城图标）
+├── online_voting_vue/  # 前端项目
+│   ├── src/views/      # 页面组件
+│   ├── src/api/        # API封装
+│   ├── src/utils/      # 工具
+│   ├── src/router/     # 路由
+│   └── src/components/ # 公共组件
+└── sql/                # 数据库脚本
 ```
 
-## 开发团队
+## 数据库（15张表）
 
-- 后端开发
-- 前端开发
+account / vote / vote_option / vote_record / vote_favorite / vote_comment /
+vote_notification / user_points / points_log / wheel_prize / wheel_record /
+vote_group / vote_audit / vote_like / shop_item / user_item / anime_fighter /
+anime_battle / chat_message / user_friend
 
 ## 许可证
 
