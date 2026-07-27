@@ -83,11 +83,11 @@ const prizes = [
   { label: '20积分', points: 20, color: '#FFA07A' },
   { label: '2积分', points: 2, color: '#98D8C8' },
   { label: '50积分', points: 50, color: '#F7DC6F' },
-  { label: '谢谢参与', points: 0, color: '#BB8FCE' },
-  { label: '8积分', points: 8, color: '#85C1E9' }
+  { label: '8积分', points: 8, color: '#85C1E9' },
+  { label: '谢谢参与', points: 0, color: '#BB8FCE' }
 ]
 
-const SEGMENT = (2 * Math.PI) / prizes.length
+const SEGMENT = (2 * Math.PI) / 8
 
 // 绘制转盘
 const drawWheel = (rotation = 0) => {
@@ -102,6 +102,7 @@ const drawWheel = (rotation = 0) => {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+  // 绘制扇形
   prizes.forEach((prize, index) => {
     const startAngle = index * SEGMENT + rotation
     const endAngle = startAngle + SEGMENT
@@ -156,33 +157,42 @@ const startDraw = async () => {
   result.value = null
 
   try {
-    const data: any = await wheelDraw(voteId)
+    // 临时固定测试
+    const data: any = await wheelDraw(props.voteId)
     console.log('🎰 抽奖结果:', data)
 
-    // 检查是否已抽奖
     if (data.alreadyDrawn) {
       ElMessage.info('您已抽过奖')
       result.value = {
         points: 0,
-        message: '😅 您已抽过奖，不能再抽了'
+        message: '您已抽过奖，不能再抽了'
       }
       isSpinning.value = false
       return
     }
 
-    // 获取积分
+    const prizeId = data.prizeId || 1
+    const targetIndex = prizeId - 1
+    const finalIndex = Math.max(0, Math.min(targetIndex, prizes.length - 1))
     const points = data.points || 0
-    const prizeName = data.prizeName || '谢谢参与'
 
-    // 找到对应的奖品索引（用于转盘动画）
-    let targetIndex = prizes.findIndex(p => p.points === points)
-    if (targetIndex < 0) targetIndex = 0
+    console.log('🎯 prizeId:', prizeId, '索引:', finalIndex, '奖品:', prizes[finalIndex]?.label)
 
-    const targetAngle = targetIndex * SEGMENT + SEGMENT / 2
-    const spins = 5 + Math.random() * 3
-    const finalAngle = targetAngle + spins * 2 * Math.PI
+    // ===== 修正角度 =====
+    // 指针在顶部（12点钟方向）
+    // 目标扇形中心角度
+    const targetCenter = finalIndex * SEGMENT + SEGMENT / 2
 
-    // 动画
+    const pointerOffset =-2*SEGMENT
+
+    // 转盘旋转角度
+    const targetRotation = -(targetCenter - pointerOffset)
+
+    const extraSpins = 5
+    const finalAngle = targetRotation + extraSpins * 2 * Math.PI
+
+    console.log('🎯 targetCenter:', targetCenter, 'pointerOffset:', pointerOffset, 'targetRotation:', targetRotation)
+
     const duration = 3000
     const startTime = performance.now()
     const startAngle = currentAngle
@@ -198,10 +208,10 @@ const startDraw = async () => {
         if (progress < 1) {
           requestAnimationFrame(animate)
         } else {
-          currentAngle = currentAngleNew
+          currentAngle = finalAngle
           isSpinning.value = false
 
-          const prize = prizes[targetIndex] || { points: 0, label: '谢谢参与' }
+          const prize = prizes[finalIndex] || { points: 0, label: '谢谢参与' }
           const finalPoints = points || 0
 
           result.value = {
@@ -210,7 +220,7 @@ const startDraw = async () => {
           }
 
           if (finalPoints > 0) {
-            emit('success', { points: finalPoints, prize: prizeName })
+            emit('success', { points: finalPoints, prize: prize.label })
             ElMessage.success(`🎉 获得 ${finalPoints} 积分！`)
           } else {
             ElMessage.info('谢谢参与，下次好运！')

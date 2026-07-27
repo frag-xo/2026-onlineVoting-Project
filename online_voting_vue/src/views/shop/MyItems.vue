@@ -96,6 +96,7 @@ const activeType = ref('all')
 const itemList = ref<any[]>([])
 const renameTarget = ref<any>(null)
 const newName = ref('')
+const filterItems = ref<string>('all')
 
 const filteredList = computed(() => {
   if (activeType.value === 'all') return itemList.value
