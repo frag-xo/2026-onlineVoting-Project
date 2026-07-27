@@ -40,6 +40,30 @@
         </el-table>
       </el-tab-pane>
 
+      <!-- 积分排行 -->
+      <el-tab-pane label="积分排行" name="points">
+        <el-table :data="pointsList" stripe v-loading="loading">
+          <el-table-column label="排名" width="80">
+            <template #default="{ $index }">
+              <el-tag :type="$index < 3 ? 'warning' : 'info'">{{ $index + 1 }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="用户" width="160">
+            <template #default="{ row }">
+              <span>{{ row.username || row.realname || '未知' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="level" label="等级" width="80">
+            <template #default="{ row }">
+              <el-tag size="small">Lv.{{ row.level || 1 }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="currentPoints" label="当前积分" width="120" sortable />
+          <el-table-column prop="totalPoints" label="累计获得" width="120" sortable />
+        </el-table>
+        <el-empty v-if="!loading && pointsList.length === 0" description="暂无积分排行数据" />
+      </el-tab-pane>
+
       <!-- 推荐投票 -->
       <el-tab-pane label="推荐投票" name="recommended">
         <el-table :data="recommendList" stripe v-loading="loading">
@@ -73,7 +97,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getVoteRanking, getVoteList, getRecommendedVotes } from '@/api/vote'
+import { getVoteRanking, getVoteList, getRecommendedVotes, getPointsRanking } from '@/api/vote'
 
 const router = useRouter()
 const rankType = ref('hot')
@@ -82,6 +106,7 @@ const loading = ref(false)
 const hotList = ref<any[]>([])
 const newestList = ref<any[]>([])
 const recommendList = ref<any[]>([])
+const pointsList = ref<any[]>([])
 
 // 加载热门排行
 const loadHotRanking = async () => {
@@ -139,6 +164,22 @@ const loadRecommended = async () => {
   }
 }
 
+// 加载积分排行
+const loadPointsRanking = async () => {
+  try {
+    const data = await getPointsRanking(20)
+    pointsList.value = (data || []).map((item: any) => ({
+      username: item.username,
+      realname: item.realname,
+      level: item.level,
+      currentPoints: item.currentPoints,
+      totalPoints: item.totalPoints
+    }))
+  } catch (error: any) {
+    console.warn('加载积分排行失败', error.message)
+  }
+}
+
 const goDetail = (id: number) => {
   if (!id) {
     ElMessage.warning('投票ID无效')
@@ -149,7 +190,7 @@ const goDetail = (id: number) => {
 
 onMounted(() => {
   loading.value = true
-  Promise.all([loadHotRanking(), loadNewest(), loadRecommended()]).finally(() => {
+  Promise.all([loadHotRanking(), loadNewest(), loadRecommended(), loadPointsRanking()]).finally(() => {
     loading.value = false
   })
 })

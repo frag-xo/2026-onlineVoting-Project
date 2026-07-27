@@ -351,6 +351,10 @@ export const getPointsLog = () => {
   return request.get('/points/log')
 }
 
+export const getPointsRanking = (limit = 10) => {
+  return request.get('/points/ranking', { params: { limit } })
+}
+
 export const getAccountById = (id: number) => {
   return request.get(`/account/${id}`)
 }
