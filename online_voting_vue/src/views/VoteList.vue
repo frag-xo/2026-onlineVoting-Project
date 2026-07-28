@@ -227,6 +227,8 @@ const loadVotes = async () => {
   }
 }
 
+
+
 // ============================================================
 // 分享功能
 // ============================================================
@@ -268,10 +270,28 @@ const handleShare = async (id: number, cmd: string) => {
 // ============================================================
 
 const goDetail = (id: number) => {
+  const token = getToken()
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push({
+      path: '/login',
+      query: { redirect: `/detail/${id}` }
+    })
+    return
+  }
   router.push(`/detail/${id}`)
 }
 
 const goResult = (id: number) => {
+  const token = getToken()
+  if (!token) {
+    ElMessage.warning('请先登录')
+    router.push({
+      path: '/login',
+      query: { redirect: `/result/${id}` }
+    })
+    return
+  }
   router.push(`/result/${id}`)
 }
 

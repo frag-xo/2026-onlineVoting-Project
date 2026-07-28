@@ -219,6 +219,11 @@ const isLiked = ref(false)
 const likeCount = ref(0)
 
 const loadLikeCount = async () => {
+  const token = getToken()
+  if (!token) {
+    likeCount.value = 0
+    return
+  }
   try {
     const data: any = await getLikeCount(voteId)
     likeCount.value = data || 0

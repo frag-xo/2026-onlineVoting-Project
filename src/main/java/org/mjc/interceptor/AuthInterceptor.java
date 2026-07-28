@@ -36,7 +36,45 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // ============================================================
+        // ✅ 放行公开接口（无需登录）
+        // ============================================================
+        String uri = request.getRequestURI();
+        System.out.println("🔐 拦截器拦截路径: " + uri);
+
+        // 1. 放行登录和注册
+        if (uri.contains("/account/login") || uri.contains("/account/register")) {
+            System.out.println("✅ 放行登录/注册接口");
+            return true;
+        }
+
+        // 2. 放行验证码
+        if (uri.contains("/captcha")) {
+            System.out.println("✅ 放行验证码接口");
+            return true;
+        }
+
+        // 3. 放行分享链接和二维码
+        if (uri.contains("/share")) {
+            System.out.println("✅ 放行分享接口");
+            return true;
+        }
+
+        // 4. ✅ 放行投票列表查询（访客可看）
+        if (uri.contains("/vote/page")) {
+            System.out.println("✅ 放行投票列表接口");
+            return true;
+        }
+
+        // 5. ✅ 放行投票详情和结果（访客可看）
+        if (uri.contains("/vote/result")) {
+            System.out.println("✅ 放行投票结果接口");
+            return true;
+        }
+
+        // ============================================================
         // 从 Header 中获取 token
+        // ============================================================
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -59,7 +97,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         String utype = jwtUtils.getUtype(token);
 
         // 获取请求路径
-        String uri = request.getRequestURI();
         String method = request.getMethod();
 
         // 管理员接口权限验证

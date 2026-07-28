@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { getToken } from '@/utils/auth'
+import { getToken, getUtype } from '@/utils/auth'
 import VoteList from '../views/VoteList.vue'
 
 const routes = [
@@ -27,18 +27,56 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：未登录跳转登录页
+// ============================================================
+// 路由守卫
+// ============================================================
 router.beforeEach((to) => {
-  const publicPages = ['/', '/login', '/register', '/detail', '/result', '/anime-pk', '/pk']
-  if (!publicPages.includes(to.path) && !to.path.startsWith('/detail') && !to.path.startsWith('/result')) {
-    const token = getToken()
-    if (!token) {
-      return { path: '/login', query: { redirect: to.fullPath } }
+  const token = getToken()
+  const utype = getUtype()
+
+  // ===== 1. 公开页面（无需登录） =====
+  // ✅ 明确列出所有公开页面，包括首页 /
+  const publicPages = [
+    '/', '/login', '/register', '/detail', '/result',
+    '/anime-pk', '/pk', '/pk/battle', '/rankings'
+  ]
+
+  // 检查当前路径是否匹配公开页面
+  const isPublic = publicPages.some(path => {
+    // 精确匹配或者动态路由匹配
+    if (path === to.path) return true
+    if (path === '/detail' && to.path.startsWith('/detail/')) return true
+    if (path === '/result' && to.path.startsWith('/result/')) return true
+    return false
+  })
+
+  // ===== 公开页面：直接放行 =====
+  if (isPublic) {
+    // 已登录用户访问登录/注册页 → 跳转首页
+    if (to.path === '/login' || to.path === '/register') {
+      if (token) {
+        return { path: '/' }
+      }
+      return true
     }
+    return true
   }
+
+  // ===== 2. 需要登录 =====
+  if (!token) {
+    return { path: '/login', query: { redirect: to.fullPath } }
+  }
+
+  // ===== 3. 管理员专属 =====
+  if (to.path === '/admin' || to.path === '/dashboard') {
+    if (utype !== 'ROLE_1') {
+      return { path: '/' }
+    }
+    return true
+  }
+
+  // ===== 4. 其他页面（登录即可访问） =====
   return true
 })
 
-
 export default router
-
