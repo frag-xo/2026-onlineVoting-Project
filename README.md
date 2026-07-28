@@ -127,11 +127,19 @@ npm run dev
 ### 🎮 动漫PK对战
 - 暗黑风格独立竞技场页面
 - 30轮胜者保留机制
-- ELO 评分算法
+- ELO 评分算法（动态K值）
 - 32部动漫不重复挑战
-- Hover 卡片放大 + 光晕效果
+- Hover 卡片放大 + 柔光边框
 - 终选彩蛋 + 真爱粉称号
 - 胜率&ELO排行
+
+### 🔥 多分类话题PK
+- 6个分类：美食/生活/数码/游戏/南北/奶茶
+- 50+争议话题，每个分类独立对战
+- 奶茶冠军模式（胜者留守）
+- 动态称号系统（香菜教父、喜茶信徒等）
+- 个性化结果分析（「你是69%北方人」）
+- PkIndex分类选择页 + PkBattle对战页
 
 ### 🎡 其他功能
 | 功能 | 说明 |
@@ -186,12 +194,16 @@ Online_voting/
 └── sql/                # 数据库脚本
 ```
 
-## 数据库（15张表）
+## 数据库（23张表）
 
-account / vote / vote_option / vote_record / vote_favorite / vote_comment /
-vote_notification / user_points / points_log / wheel_prize / wheel_record /
-vote_group / vote_audit / vote_like / shop_item / user_item / anime_fighter /
-anime_battle / chat_message / user_friend
+account 用户表、vote 投票表、vote_option 选项表、vote_record 投票记录
+vote_comment 评论、vote_favorite 收藏、vote_like 点赞、vote_notification 通知
+vote_audit 审核、user_friend 好友、chat_message 聊天
+user_points 积分、points_log 积分流水
+shop_item 商城商品、user_item 用户物品
+anime_fighter 动漫选手、anime_battle 动漫对战
+pk_category PK分类、pk_pair PK话题、pk_battle PK对战
+wheel_prize 转盘奖品、wheel_record 转盘记录、vote_group 投票分组
 
 ## 许可证
 
