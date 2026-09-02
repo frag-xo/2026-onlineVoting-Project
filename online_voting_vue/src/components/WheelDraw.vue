@@ -183,7 +183,7 @@ const startDraw = async () => {
     // 目标扇形中心角度
     const targetCenter = finalIndex * SEGMENT + SEGMENT / 2
 
-    const pointerOffset =-2*SEGMENT
+    const pointerOffset =-0*SEGMENT
 
     // 转盘旋转角度
     const targetRotation = -(targetCenter - pointerOffset)
