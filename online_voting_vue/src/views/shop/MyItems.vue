@@ -85,8 +85,9 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getMyItems, equipItem, useNameCard } from '@/api/shop'
 import { getUserId } from '@/utils/auth'
+import { API_BASE } from '@/config'
 
-const imgBase = 'http://localhost:8080'
+const imgBase = API_BASE
 const router = useRouter()
 const loading = ref(false)
 const equipLoading = ref<number | null>(null)

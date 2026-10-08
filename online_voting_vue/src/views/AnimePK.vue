@@ -140,8 +140,9 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { submitAnimeBattle, getAnimeRanking } from '@/api/vote'
 import request from '@/api'
+import { API_BASE } from '@/config'
 
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = API_BASE
 const router = useRouter()
 const loading = ref(false)
 const showResult = ref(false)

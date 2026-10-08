@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { getToken } from '@/utils/auth'
+import { API_BASE } from '@/config'
 
 // 设置后端基础地址
-const baseURL = 'http://localhost:8080/api'
+const baseURL = `${API_BASE}/api`
 
 const request = axios.create({
   baseURL,
@@ -16,12 +17,8 @@ const request = axios.create({
 request.interceptors.request.use(
   (config) => {
     const token = getToken()
-    console.log('🔐 拦截器读取到 token:', token)  // 调试日志
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log('✅ 已添加 Authorization 头')
-    } else {
-      console.warn('⚠️ 没有 token，请求可能被拒绝')
     }
     return config
   },

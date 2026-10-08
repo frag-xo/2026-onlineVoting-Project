@@ -159,7 +159,6 @@ const startDraw = async () => {
   try {
     // 临时固定测试
     const data: any = await wheelDraw(props.voteId)
-    console.log('🎰 抽奖结果:', data)
 
     if (data.alreadyDrawn) {
       ElMessage.info('您已抽过奖')
@@ -176,7 +175,6 @@ const startDraw = async () => {
     const finalIndex = Math.max(0, Math.min(targetIndex, prizes.length - 1))
     const points = data.points || 0
 
-    console.log('🎯 prizeId:', prizeId, '索引:', finalIndex, '奖品:', prizes[finalIndex]?.label)
 
     // ===== 修正角度 =====
     // 指针在顶部（12点钟方向）
@@ -191,7 +189,6 @@ const startDraw = async () => {
     const extraSpins = 5
     const finalAngle = targetRotation + extraSpins * 2 * Math.PI
 
-    console.log('🎯 targetCenter:', targetCenter, 'pointerOffset:', pointerOffset, 'targetRotation:', targetRotation)
 
     const duration = 3000
     const startTime = performance.now()

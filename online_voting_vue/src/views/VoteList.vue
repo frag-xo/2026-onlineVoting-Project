@@ -122,6 +122,7 @@ import { Search } from '@element-plus/icons-vue'
 import { getVoteList } from '@/api/vote'
 import request from '@/api/index'
 import { getToken } from '@/utils/auth'
+import { API_BASE } from '@/config'
 
 const router = useRouter()
 
@@ -181,7 +182,6 @@ const loadVotes = async () => {
       params.orderDirection = orderDirection
     }
 
-    console.log('📤 请求参数:', params)
 
     const data: any = await getVoteList(params)
 
@@ -217,7 +217,6 @@ const loadVotes = async () => {
       options: item.options || []
     }))
 
-    console.log('✅ 加载完成，共', voteList.value.length, '条')
   } catch (error: any) {
     console.error('❌ 加载投票列表失败:', error)
     // 不弹窗错误，静默失败
@@ -251,7 +250,7 @@ const handleShare = async (id: number, cmd: string) => {
   } else if (cmd === 'qrcode') {
     try {
       const token = getToken()
-      const resp = await fetch(`http://localhost:8080/api/vote/share/qrcode/${id}?baseUrl=${encodeURIComponent(baseUrl)}&width=300&height=300`, {
+      const resp = await fetch(`${API_BASE}/api/vote/share/qrcode/${id}?baseUrl=${encodeURIComponent(baseUrl)}&width=300&height=300`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!resp.ok) throw new Error('请求失败')

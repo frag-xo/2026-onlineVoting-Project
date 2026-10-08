@@ -112,7 +112,6 @@ const handleLogin = async () => {
     loading.value = true
     try {
       const userData: any = await login(form.uname, form.pwd)
-      console.log('登录返回数据:', userData)
 
       const token = userData?.token
       const utype = userData?.utype || 'ROLE_3'

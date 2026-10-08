@@ -62,8 +62,9 @@ import { ElMessage } from 'element-plus'
 import { getShopItems, buyShopItem } from '@/api/shop'
 import { getMyPoints } from '@/api/vote'
 import { getUserId } from '@/utils/auth'
+import { API_BASE } from '@/config'
 
-const imgBase = 'http://localhost:8080'
+const imgBase = API_BASE
 const router = useRouter()
 const loading = ref(false)
 const buyLoading = ref<number | null>(null)

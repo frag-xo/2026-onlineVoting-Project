@@ -359,7 +359,6 @@ const refreshCaptcha = async () => {
 
 // ===== 转盘回调 =====
 const onWheelSuccess = (data: { points: number; prize: string }) => {
-  console.log('🎉 抽奖获得:', data.points, '积分,', data.prize)
 }
 
 const onWheelSkip = () => {

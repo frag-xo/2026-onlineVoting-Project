@@ -575,7 +575,6 @@ const handleFileChange = (event: any) => {
     return
   }
 
-  console.log('选择了文件:', file.name)
 
   uploadFile.value = file
 
