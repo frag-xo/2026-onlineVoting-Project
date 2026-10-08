@@ -41,12 +41,11 @@ import { ElMessage } from 'element-plus'
 import { getChatHistory, markMessagesRead } from '@/api/chat'
 import { getFriendList } from '@/api/friends'
 import { WS_BASE } from '@/config'
-import { getToken, getUserId } from '@/utils/auth'
 
 const route = useRoute()
 const router = useRouter()
 const friendId = Number(route.params.friendId)
-const currentUserId = getUserId()
+const currentUserId = Number(localStorage.getItem('userId') || 0)
 
 // 状态
 const friendName = ref('')
@@ -123,7 +122,7 @@ const sendMessage = () => {
 };
 
 const connectWebSocket = () => {
-  const token = getToken();
+  const token = localStorage.getItem('token');
   if (!token) {
     ElMessage.warning('请先登录');
     return;
@@ -133,6 +132,7 @@ const connectWebSocket = () => {
 
   ws.value.onopen = () => {
     isConnected.value = true;
+    console.log('WebSocket 已连接');
   };
 
   ws.value.onmessage = (event) => {
@@ -145,6 +145,7 @@ const connectWebSocket = () => {
       }
       // 处理 ack 确认（可选）
       if (data.type === 'ack') {
+        console.log('消息已送达:', data.messageId);
         return;
       }
       // 普通消息（对方发来的）
@@ -172,6 +173,7 @@ const connectWebSocket = () => {
 
   ws.value.onclose = () => {
     isConnected.value = false;
+    console.log('WebSocket 已断开');
     // 可尝试重连
   };
 };
