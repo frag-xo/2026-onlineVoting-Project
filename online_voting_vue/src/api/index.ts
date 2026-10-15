@@ -2,7 +2,7 @@ import axios from 'axios'
 import { getToken } from '@/utils/auth'
 import { API_BASE } from '@/config'
 
-// 设置后端基础地址
+// 后端基础地址由环境变量注入（.env 中的 VITE_API_BASE），避免硬编码主机
 const baseURL = `${API_BASE}/api`
 
 const request = axios.create({
@@ -13,7 +13,7 @@ const request = axios.create({
   }
 })
 
-// ✅ 请求拦截器：自动添加 Token
+// 请求拦截器：自动为请求添加 JWT
 request.interceptors.request.use(
   (config) => {
     const token = getToken()

@@ -1,25 +1,29 @@
 /**
  * 认证信息存储工具
  *
- * 使用 sessionStorage（每个 Tab 独立），避免多 Tab 登录互相覆盖。
- * 非认证数据（主题、侧边栏等）仍用 localStorage。
+ * 认证信息只存 sessionStorage：sessionStorage 按 Tab 隔离，
+ * 多个 Tab 登录不同账号时权限互不影响。
+ * 非认证数据（主题色、侧边栏折叠状态等）才用 localStorage，以便跨 Tab 保持一致。
+ *
+ * 注意：早期版本会把认证信息同时写入 localStorage，而 localStorage 跨 Tab 共享，
+ * 会破坏多 Tab 隔离、导致登录态互相覆盖，现已移除该写入；
+ * clearAuth 仍会顺带清理 localStorage 中的历史残留数据。
  */
 
 const AUTH_KEYS = ['token', 'userId', 'username', 'utype', 'avatar'] as const
 type AuthKey = typeof AUTH_KEYS[number]
 
-/** 获取认证信息（从 sessionStorage，兼容回退到 localStorage） */
+/** 读取认证信息（仅 sessionStorage） */
 export function getAuth(key: AuthKey): string | null {
-  return sessionStorage.getItem(key) ?? localStorage.getItem(key)
+  return sessionStorage.getItem(key)
 }
 
-/** 设置认证信息（同时写入 sessionStorage + localStorage） */
+/** 写入认证信息（仅 sessionStorage，保证多 Tab 隔离） */
 export function setAuth(key: AuthKey, value: string): void {
   sessionStorage.setItem(key, value)
-  localStorage.setItem(key, value)
 }
 
-/** 清除所有认证信息（两个存储都清） */
+/** 清除认证信息（同时清理 localStorage 中的历史残留） */
 export function clearAuth(): void {
   for (const key of AUTH_KEYS) {
     sessionStorage.removeItem(key)

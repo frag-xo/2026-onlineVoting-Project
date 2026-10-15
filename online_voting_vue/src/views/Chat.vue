@@ -40,12 +40,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getChatHistory, markMessagesRead } from '@/api/chat'
 import { getFriendList } from '@/api/friends'
+import { getToken, getUserId } from '@/utils/auth'
 import { WS_BASE } from '@/config'
 
 const route = useRoute()
 const router = useRouter()
 const friendId = Number(route.params.friendId)
-const currentUserId = Number(localStorage.getItem('userId') || 0)
+// 从统一的认证工具读取（认证信息存在 sessionStorage，按 Tab 隔离）
+const currentUserId = getUserId()
 
 // 状态
 const friendName = ref('')
@@ -122,7 +124,7 @@ const sendMessage = () => {
 };
 
 const connectWebSocket = () => {
-  const token = localStorage.getItem('token');
+  const token = getToken();
   if (!token) {
     ElMessage.warning('请先登录');
     return;
